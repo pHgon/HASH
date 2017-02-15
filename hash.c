@@ -6,8 +6,8 @@
 #define LINEAR       1
 #define QUADRATICA   2
 #define DUPLO        3
-#define L_FACTOR      0.75
-#define INI_SIZE      500
+#define L_FACTOR     0.75
+#define INI_SIZE     500
 
 
 
@@ -30,38 +30,87 @@ int option (char argument[]){
 	}
 }
 
-FILE *iniOutputFile (){
-	FILE *file = fopen("log_output.txt", "w");
-	return file;
-}
-
 // Funcao HASH Rotation ou Rolling, recebe a chave a ser codificada e o tamanho
-unsigned rot_hash (void *key, int len){
+int rot_hash(void *key, int len){
     unsigned char *p = key;
-    unsigned h = 0;
+    int h = 0;
     int i;
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++){
         h = (h << 4) ^ (h >> 28) ^ p[i];
     }
-    return h;
+    return abs(h);
 }
 
-// Funcao Le do arquivo de entrada
-unsigned readInput (FILE *inputFile, char input1[], char input2[]){
-	fscanf(inputFile, "%s %s", input1, input2);
+// Le do arquivo de entrada e retorna o valor da Key do Rotation Hash
+int readInput (FILE *inputFile, char input1[], char input2[]){
+	fscanf(inputFile, "%s \"%s", input1, input2);
 	int tam = strlen(input2);
 	tam--;
 	input2[tam] = '\0'; // Limpa as " do final da string
 	return rot_hash(input2, tam);
 }
 
+// Inicia a Hash
+int *startHash (int size){
+	int *ptr = (int*) calloc (size, sizeof(int));
+	return ptr;
+}
+
+// Insere na Hash
+void insert (int *ptr, int size, char input[], unsigned key){
+	int i = key;
+	do{
+		if (ptr[key] == 0){
+			ptr[key] = input;
+			break;
+		}
+		else{
+			i++;
+			if(i==size)
+				i = 0;
+		}
+	} while (i != key);
+}
+
 void linear (FILE *inputFile, FILE *outputFile){
 	char input1[7], input2[100];
-	unsigned key;
+	int key;
+	int hashSize = INI_SIZE;
+	int loadHash = 0;
+	int *head = startHash(hashSize);
+	int i;
+	//for (i=0; i<500; i++){
+		key = readInput (inputFile, input1, input2);
+		printf("%-100s - %u\n", input2, key);
+	//}
+	exit(0);
+	if(input1=="INSERT"){
+		insert(head, hashSize, input2, key);
+		loadHash++;
+		//if((loadHash/hashSize)>=L_FACTOR)
+	}
+	else{
+		if(input1=="DELETE"){
 
-	key = readInput(inputFile, input1, input2);
+		}
+		else{
+			if(input1=="GET"){
+
+			}
+			else{
+				printf("\nERROR: input1 contain a invalid command .. Program closed!\n");
+				exit(-1);
+			}
+		}
+	}
 	
-	//printf("%s | %s | %u | %u\n\n", input1, input2, key, key%500);
+	/*do{
+		key = readInput(inputFile, input1, input2);
+		if(head[key]==0){
+			head[key] = 
+		}
+		//printf("%s | %s | %u | %u\n\n", input1, input2, key, key%500);
+	} while(!feof(inputFile));*/
 }
 
 
@@ -71,21 +120,18 @@ void main(int argc,char *argv[]){
     	exit(-1);
     }
 	
-	FILE *inputFile = fopen (argv[2], "r");
+	FILE *inputFile  = fopen (argv[2], "r");
+	FILE *outputFile = fopen("log_output.txt", "w");
 	if (inputFile == NULL){
 		printf("\nERROR: File not found .. Program closed!\n");
 		exit(-1);
 	}
 
-	FILE *outputFile;
-
 	switch (option(argv[1])){
 		case ENCADEAMENTO:
 			break;
 		case LINEAR:
-			outputFile = iniOutputFile();
 			linear(inputFile, outputFile);
-			exit(1);
 			break;
 		case QUADRATICA:
 			break;

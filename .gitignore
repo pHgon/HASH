@@ -31,3 +31,11 @@
 # Debug files
 *.dSYM/
 *.su
+
+log_output.txt
+teste.c
+hash
+teste
+input_10000
+input_100000
+Saídas-Rotating/*

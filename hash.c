@@ -60,8 +60,8 @@ int *startHash (int size){
 void insert (int *ptr, int size, char input[], unsigned key){
 	int i = key;
 	do{
-		if (ptr[key] == 0){
-			ptr[key] = input;
+		if (ptr[i] == 0){
+			ptr[i] = input;
 			break;
 		}
 		else{
@@ -79,11 +79,8 @@ void linear (FILE *inputFile, FILE *outputFile){
 	int loadHash = 0;
 	int *head = startHash(hashSize);
 	int i;
-	//for (i=0; i<500; i++){
-		key = readInput (inputFile, input1, input2);
-		printf("%-100s - %u\n", input2, key);
-	//}
-	exit(0);
+	key = readInput (inputFile, input1, input2);
+	
 	if(input1=="INSERT"){
 		insert(head, hashSize, input2, key);
 		loadHash++;
@@ -103,14 +100,6 @@ void linear (FILE *inputFile, FILE *outputFile){
 			}
 		}
 	}
-	
-	/*do{
-		key = readInput(inputFile, input1, input2);
-		if(head[key]==0){
-			head[key] = 
-		}
-		//printf("%s | %s | %u | %u\n\n", input1, input2, key, key%500);
-	} while(!feof(inputFile));*/
 }
 
 

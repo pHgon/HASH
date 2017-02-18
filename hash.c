@@ -51,20 +51,25 @@ int readInput (FILE *inputFile, char input1[], char input2[]){
 }
 
 // Inicia a Hash
-int *startHash (int size){
-	int *ptr = (int*) calloc (size, sizeof(int));
+char **startHash (int size){
+	int i;
+	char **ptr = (char**) malloc (size * sizeof(char*));
+	for (i=0; i<size; i++){
+		ptr[i] = (char*) malloc (100 * sizeof(char));
+	}
 	return ptr;
 }
 
 // Insere na Hash
-void insert (int *ptr, int size, char input[], unsigned key){
+void insert (char **ptr, int size, char input[], unsigned key){
 	int i = key;
 	do{
-		if (ptr[i] == 0){
+		if (ptr[i] == NULL){
 			ptr[i] = input;
+			printf("%s\n", ptr[i]);
 			break;
 		}
-		else{
+		else{	
 			i++;
 			if(i==size)
 				i = 0;
@@ -74,32 +79,33 @@ void insert (int *ptr, int size, char input[], unsigned key){
 
 void linear (FILE *inputFile, FILE *outputFile){
 	char input1[7], input2[100];
-	int key;
-	int hashSize = INI_SIZE;
-	int loadHash = 0;
-	int *head = startHash(hashSize);
-	int i;
-	key = readInput (inputFile, input1, input2);
-	
-	if(input1=="INSERT"){
-		insert(head, hashSize, input2, key);
-		loadHash++;
-		//if((loadHash/hashSize)>=L_FACTOR)
-	}
-	else{
-		if(input1=="DELETE"){
+	int key, hashSize = INI_SIZE, loadHash = 0;
+	char **head = startHash(hashSize);
 
+	int i;
+	//for (i=0; i<10; i++){
+		key = readInput (inputFile, input1, input2);
+
+		if(strcmp(input1, "INSERT") == 0){
+			insert(head, hashSize, input2, key);
+			loadHash++;
+			//if((loadHash/hashSize)>=L_FACTOR)
 		}
 		else{
-			if(input1=="GET"){
+			if(input1=="DELETE"){
 
 			}
 			else{
-				printf("\nERROR: input1 contain a invalid command .. Program closed!\n");
-				exit(-1);
+				if(input1=="GET"){
+
+				}
+				else{
+					printf("\nERROR: input1 contain a invalid command .. Program closed!\n");
+					exit(-1);
+				}
 			}
 		}
-	}
+	//}
 }
 
 

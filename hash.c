@@ -11,11 +11,14 @@
 
 // Celula Hash
 struct Node{
-	char keyString[101];
-	struct Node *prox;
+	char keyString[101];  // Guarda a String lida
+	struct Node *prox;    // Usado no tratamento por encadeamento
 }; typedef struct Node celHash;
 
 
+
+
+// Retorna opcao de tratamento passado por parâmetro
 int option (char argument[]){
 	if ((strcmp(argument, "-encadeamento")) == 0)
 		return ENCADEAMENTO;
@@ -55,10 +58,6 @@ void destroyHash(celHash **ptr, int size){
 	}
 	free(ptr);
 }
-
-//char **rehash (char **ptr, &size){
-//
-//}
 
 // Funcao HASH Rotation ou Rolling, recebe a chave a ser codificada e o tamanho
 int rot_hash(void *key, int len){
@@ -108,6 +107,7 @@ void insert (celHash **ptr, int size, char *input, int key, int cod){
 					aux = f_hash(key, size, i);
 					break;
 				case DUPLO:
+					aux = s_hash(key, size, i);
 					break;
 				case QUADRATICA:
 					break;
@@ -118,7 +118,23 @@ void insert (celHash **ptr, int size, char *input, int key, int cod){
 	} while (1);
 }
 
-void linear (FILE *inputFile, FILE *outputFile){
+// Re-hash dobrando o tamanho do vetor, retorna ponteiro para a nova lista
+celHash **rehash (celHash **ptr, int *size, int cod){
+	celHash **newHash = startHash(*size*2);
+	int i, key;
+	for (i=0; i<*size; i++){
+		if (ptr[i]!=NULL){
+			key = rot_hash(ptr[i]->keyString, strlen(ptr[i]->keyString));  // Calcula a chave
+			key = f_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+			insert(newHash, *size*2, ptr[i]->keyString, key, cod); // Insere na Nova hash
+		}
+	}
+	destroyHash(ptr, *size);  // Libera Hash antiga
+	*size = *size*2;
+	return newHash;
+}
+
+void Hash (FILE *inputFile, FILE *outputFile, int cod){
 	char input1[7], input2[100];
 	int key, hashSize = INI_SIZE, loadHash = 0;
 	celHash **head = startHash(hashSize);
@@ -130,10 +146,10 @@ void linear (FILE *inputFile, FILE *outputFile){
 			key = f_hash(key, hashSize, 0);
 
 			if(strcmp(input1, "INSERT") == 0){
-				insert(head, hashSize, input2, key, LINEAR);
+				insert(head, hashSize, input2, key, cod);
 				loadHash++;
-				//if((loadHash/hashSize)>=L_FACTOR)
-				//	head = rehash(head, &hashSize);
+				if((loadHash/hashSize)>=L_FACTOR)
+					head = rehash(head, &hashSize, cod);
 			}
 			else{
 				if(strcmp(input1, "DELETE") == 0){
@@ -161,26 +177,21 @@ void main(int argc,char *argv[]){
     	exit(-1);
     }
 	
+	int opt = option(argv[1]);  // Recebe o codigo referente ao modo de tratamento escolhido
 	FILE *inputFile  = fopen (argv[2], "r");
 	FILE *outputFile = fopen("log_output.txt", "w");
 	if (inputFile == NULL){
 		printf("\nERROR: File not found .. Program closed!\n");
 		exit(-1);
 	}
-	switch (option(argv[1])){
-		case ENCADEAMENTO:
-			break;
-		case LINEAR:
-			linear(inputFile, outputFile);
-			break;
-		case QUADRATICA:
-			break;
-		case DUPLO:
-			break;
-		default:
-			printf("\nERROR: Invalid Argument .. Program closed!\n");
-			break;
+
+	if (opt<0){
+		printf("\nERROR: Invalid Argument .. Program closed!\n");
+		exit(-1);
 	}
+
+	Hash(inputFile, outputFile, opt);
+
 	fclose(inputFile);
 	fclose(outputFile);
 }

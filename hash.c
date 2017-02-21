@@ -72,8 +72,8 @@ int rot_hash(void *key, int len){
 }
 
 // Funcoes de dispersao hash primaria e secundaria
-int f_hash(int key, int size){	return key%size;  }
-int s_hash(int key, int size){	return 1+f_hash(key, size-1);  }
+int f_hash(int key, int size, int i){	return (key+i)%size;  }
+int s_hash(int key, int size, int i){	return 1+f_hash(key, size-1, i);  }
 
 // Le do arquivo de entrada e retorna o valor da Key do Rotation Hash
 int readInput (FILE *inputFile, char *input1, char *input2){
@@ -88,21 +88,34 @@ int readInput (FILE *inputFile, char *input1, char *input2){
 }
 
 // Insere na Hash
-void insert (celHash **ptr, int size, char *input, int key){
-	int i = key;
+void insert (celHash **ptr, int size, char *input, int key, int cod){
+	int i=0, aux = key;
 	do{
-		if (ptr[i] == NULL){
-			ptr[i] = (celHash *) malloc (sizeof(celHash));
-			strncpy(ptr[i]->keyString, input, 101);
-			printf("%d - %s\n", i, ptr[i]->keyString);
+		if (ptr[aux] == NULL){
+			ptr[aux] = (celHash *) malloc (sizeof(celHash));
+			if(ptr[aux]==NULL){
+				printf("ERROR: Null pointer!\n");
+				exit(0);
+			}
+			strncpy(ptr[aux]->keyString, input, 101);
+			printf("%d - %s\n", aux, ptr[aux]->keyString);
 			return;
 		}
-		else{	
+		else{
 			i++;
-			if(i==size)
-				i = 0;
+			switch(cod){
+				case LINEAR:
+					aux = f_hash(key, size, i);
+					break;
+				case DUPLO:
+					break;
+				case QUADRATICA:
+					break;
+				case ENCADEAMENTO:
+					break;
+			}
 		}
-	} while (i != key);
+	} while (1);
 }
 
 void linear (FILE *inputFile, FILE *outputFile){
@@ -114,21 +127,21 @@ void linear (FILE *inputFile, FILE *outputFile){
 		key = readInput(inputFile, input1, input2);
 
 		if (key > 0){
-			key = f_hash(key, hashSize);
+			key = f_hash(key, hashSize, 0);
 
 			if(strcmp(input1, "INSERT") == 0){
-				insert(head, hashSize, input2, key);
+				insert(head, hashSize, input2, key, LINEAR);
 				loadHash++;
 				//if((loadHash/hashSize)>=L_FACTOR)
 				//	head = rehash(head, &hashSize);
 			}
 			else{
 				if(strcmp(input1, "DELETE") == 0){
-
+					
 				}
 				else{
 					if(strcmp(input1, "GET") == 0){
-
+						
 					}
 					else{
 						printf("\nERROR: input1 contain a invalid command .. Program closed!\n");

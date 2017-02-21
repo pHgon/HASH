@@ -10,7 +10,6 @@
 #define INI_SIZE     500
 
 
-
 int option (char argument[]){
 	if ((strcmp(argument, "-encadeamento")) == 0)
 		return ENCADEAMENTO;
@@ -30,6 +29,33 @@ int option (char argument[]){
 	}
 }
 
+// Inicia a Hash
+char **startHash (int size){
+	int i;
+	char **ptr;
+	ptr = (char **) malloc (size * sizeof(char *));
+	if(ptr==NULL){
+		printf("ERROR: Null pointer!\n");
+		exit(0);
+	}
+	for (i=0; i<size; i++){
+		ptr[i] = (char *) malloc (100 * sizeof(char));
+		if(ptr[i]==NULL){
+			printf("ERROR: Null pointer!\n");
+			exit(0);
+		}
+	}
+	return ptr;
+}
+
+void destroyHash(char **ptr, int size){
+	int i;
+	for (i=0; i<size; i++){
+		free(ptr[i]);
+	}
+	free(ptr);
+}
+
 // Funcao HASH Rotation ou Rolling, recebe a chave a ser codificada e o tamanho
 int rot_hash(void *key, int len){
     unsigned char *p = key;
@@ -42,32 +68,25 @@ int rot_hash(void *key, int len){
 }
 
 // Le do arquivo de entrada e retorna o valor da Key do Rotation Hash
-int readInput (FILE *inputFile, char input1[], char input2[]){
-	fscanf(inputFile, "%s \"%s", input1, input2);
-	int tam = strlen(input2);
-	tam--;
-	input2[tam] = '\0'; // Limpa as " do final da string
-	return rot_hash(input2, tam);
-}
-
-// Inicia a Hash
-char **startHash (int size){
-	int i;
-	char **ptr = (char**) malloc (size * sizeof(char*));
-	for (i=0; i<size; i++){
-		ptr[i] = (char*) malloc (100 * sizeof(char));
+int readInput (FILE *inputFile, char *input1, char *input2){
+	if(fscanf(inputFile, "%s \"%s", input1, input2)>1){
+		int tam = strlen(input2);
+		tam--;
+		input2[tam] = '\0'; // Limpa as " do final da string
+		return rot_hash(input2, tam);
 	}
-	return ptr;
+	else
+		return -1;
 }
 
 // Insere na Hash
-void insert (char **ptr, int size, char input[], unsigned key){
+void insert (char **ptr, int size, char *input, int key){
 	int i = key;
 	do{
-		if (ptr[i] == NULL){
-			ptr[i] = input;
-			printf("%s\n", ptr[i]);
-			break;
+		if (ptr[i][0] == '\0'){
+			strncpy(ptr[i], input, 100);
+			printf("%d - %s\n", i, input);
+			return;
 		}
 		else{	
 			i++;
@@ -81,32 +100,39 @@ void linear (FILE *inputFile, FILE *outputFile){
 	char input1[7], input2[100];
 	int key, hashSize = INI_SIZE, loadHash = 0;
 	char **head = startHash(hashSize);
+	
+	while (!feof(inputFile)){
+		key = readInput(inputFile, input1, input2);
 
-	int i;
-	//for (i=0; i<10; i++){
-		key = readInput (inputFile, input1, input2);
+		if (key > 0){
+			key = key%hashSize;
 
-		if(strcmp(input1, "INSERT") == 0){
-			insert(head, hashSize, input2, key);
-			loadHash++;
-			//if((loadHash/hashSize)>=L_FACTOR)
-		}
-		else{
-			if(input1=="DELETE"){
-
+			if(strcmp(input1, "INSERT") == 0){
+				insert(head, hashSize, input2, key);
+				loadHash++;
+				//if((loadHash/hashSize)>=L_FACTOR)
 			}
 			else{
-				if(input1=="GET"){
+				if(strcmp(input1, "DELETE") == 0){
 
 				}
 				else{
-					printf("\nERROR: input1 contain a invalid command .. Program closed!\n");
-					exit(-1);
+					if(strcmp(input1, "GET") == 0){
+
+					}
+					else{
+						printf("\nERROR: input1 contain a invalid command .. Program closed!\n");
+						exit(-1);
+					}
 				}
 			}
 		}
-	//}
+	}
+
+	destroyHash(head, hashSize);
 }
+
+
 
 
 void main(int argc,char *argv[]){
@@ -121,7 +147,6 @@ void main(int argc,char *argv[]){
 		printf("\nERROR: File not found .. Program closed!\n");
 		exit(-1);
 	}
-
 	switch (option(argv[1])){
 		case ENCADEAMENTO:
 			break;

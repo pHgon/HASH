@@ -42,7 +42,7 @@ int option (char argument[]){
 // Inicia a Hash
 celHash **startHash (int size){
 	int i;
-	celHash **ptr;
+	celHash **ptr; 
 	ptr = (celHash **) malloc (size * sizeof(celHash *));
 	if(ptr==NULL){
 		printf("ERROR: Null pointer!\n");
@@ -113,7 +113,7 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 			}
 			strncpy(ptr[aux]->keyString, input, 101);
 			if(output!=NULL){
-				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", ptr[aux]->keyString, key, index, aux, i);
+				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 				return 1;
 			}
 			else{
@@ -124,53 +124,50 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 			if(strncmp(ptr[aux]->keyString,"\0", 1)==1){
 				printf("entro\n");
 				strncpy(ptr[aux]->keyString, input, 101);
-				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", ptr[aux]->keyString, key, index, aux, i);
+				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 				return 1;
 			}
 			else{
 				i++;
-				aux = collisionTreatment(index, size, i, cod);
 				if (strcmp(ptr[aux]->keyString,input)==0){ // Caso string ja esteja inserida na lista
 					if(output!=NULL){
-						fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", ptr[aux]->keyString, key, index, aux, i-1);
+						fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i-1);
 					}
 					return 0;
 				}
+				aux = collisionTreatment(index, size, i, cod);
 			}
 		}
 	} while (1);
 }
 
 int delete (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
-	/*int i=0, aux = index;
-	celHash *temp;
-	do{
+	int i=0, aux = index;
+	while(ptr[aux]!=NULL){
 		if (strcmp(input, ptr[aux]->keyString)==0){
-			fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", ptr[aux]->keyString, key, index, aux, i);
-			temp = ptr[aux];
-			ptr[aux] = NULL;
-			free(temp);
+			fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+			strncpy(ptr[aux]->keyString, "\0", 1);
 			return 1;
 		}
 		else{
 			i++;
 			aux = collisionTreatment(index, size, i, cod);
 		}
-	} while(ptr[aux]->collisionFlag==1);
-	fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", ptr[aux]->keyString, key, index, aux, i);
-	return -1;*/
+	} 
+	fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+	return -1;
 }
 
 void get (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
 	int i=0, aux = index;
 	do {
 		if(ptr[aux]==NULL){
-			fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", ptr[aux]->keyString, key, index, aux, i);
+			fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
 			return;
 		}
 		else{
 			if(strcmp(input, ptr[aux]->keyString)==0){
-				fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", ptr[aux]->keyString, key, index, aux, i);
+				fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 				return;
 			}
 			else{
@@ -186,7 +183,7 @@ celHash **rehash (celHash **ptr, int *size, int cod){
 	celHash **newHash = startHash(*size*2);
 	int i, key, index;
 	for (i=0; i<*size; i++){
-		if (ptr[i]!=NULL){
+		if (ptr[i]!=NULL && strncmp(ptr[i]->keyString,"\0", 1)!=1){
 			key = rot_hash(ptr[i]->keyString, strlen(ptr[i]->keyString));  // Calcula a chave
 			index = f_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
 			insert(newHash, *size*2, ptr[i]->keyString, key, index, cod, NULL); // Insere na Nova hash

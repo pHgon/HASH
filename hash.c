@@ -13,7 +13,7 @@
 struct Node{
 	char keyString[101];  // Guarda a String lida
 	struct Node *prox;    // Usado no tratamento por encadeamento
-	int collisionFlag;    // Flag se a celula sofreu alguma colisao
+	//int collisionFlag;    // Flag se a celula sofreu alguma colisao
 }; typedef struct Node celHash;
 
 
@@ -102,7 +102,7 @@ int collisionTreatment(int key, int size, int i, int cod){
 }
 
 // Insere na Hash
-void insert (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
+int insert (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
 	int i=0, aux = index;
 	do{
 		if (ptr[aux] == NULL){
@@ -112,31 +112,29 @@ void insert (celHash **ptr, int size, char *input, int key, int index, int cod, 
 				exit(0);
 			}
 			strncpy(ptr[aux]->keyString, input, 101);
-			if (i>0){
-				ptr[aux]->collisionFlag = 1;
-			}
-			else{
-				ptr[aux]->collisionFlag = 0;
-			}
 			if(output!=NULL){
 				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", ptr[aux]->keyString, key, index, aux, i);
+				return 1;
+			}
+			else{
+				return 0;
 			}
 		}
 		else{
-			if(ptr[aux][0]->keyString == '\0'){
+			if(strncmp(ptr[aux]->keyString,"\0", 1)==1){
+				printf("entro\n");
 				strncpy(ptr[aux]->keyString, input, 101);
 				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", ptr[aux]->keyString, key, index, aux, i);
+				return 1;
 			}
 			else{
 				i++;
+				aux = collisionTreatment(index, size, i, cod);
 				if (strcmp(ptr[aux]->keyString,input)==0){ // Caso string ja esteja inserida na lista
 					if(output!=NULL){
 						fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", ptr[aux]->keyString, key, index, aux, i-1);
 					}
-					return;
-				}
-				else{
-					aux = collisionTreatment(index, size, i, cod);
+					return 0;
 				}
 			}
 		}
@@ -212,10 +210,11 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 			index = f_hash(key, hashSize, 0);
 
 			if(strcmp(input1, "INSERT") == 0){
-				insert(head, hashSize, input2, key, index, cod, outputFile);
-				loadHash++;
-				if((loadHash/hashSize)>=L_FACTOR)
-					head = rehash(head, &hashSize, cod);
+				if(insert(head, hashSize, input2, key, index, cod, outputFile)==1){
+					loadHash++;
+					if((loadHash/hashSize)>=L_FACTOR)
+						head = rehash(head, &hashSize, cod);
+				}
 			}
 			else{
 				if(strcmp(input1, "DELETE") == 0){

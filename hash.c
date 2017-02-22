@@ -121,18 +121,23 @@ void insert (celHash **ptr, int size, char *input, int key, int index, int cod, 
 			if(output!=NULL){
 				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", ptr[aux]->keyString, key, index, aux, i);
 			}
-			return;
 		}
 		else{
-			i++;
-			if (strcmp(ptr[aux]->keyString,input)==0){
-				if(output!=NULL){
-					fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", ptr[aux]->keyString, key, index, aux, i-1);
-				}
-				return;
+			if(ptr[aux][0]->keyString == '\0'){
+				strncpy(ptr[aux]->keyString, input, 101);
+				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", ptr[aux]->keyString, key, index, aux, i);
 			}
 			else{
-				aux = collisionTreatment(index, size, i, cod);
+				i++;
+				if (strcmp(ptr[aux]->keyString,input)==0){ // Caso string ja esteja inserida na lista
+					if(output!=NULL){
+						fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", ptr[aux]->keyString, key, index, aux, i-1);
+					}
+					return;
+				}
+				else{
+					aux = collisionTreatment(index, size, i, cod);
+				}
 			}
 		}
 	} while (1);
@@ -161,16 +166,21 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 void get (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
 	int i=0, aux = index;
 	do {
-		if (ptr[aux]!=NULL && strcmp(input, ptr[aux]->keyString)==0){
-			fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", ptr[aux]->keyString, key, index, aux, i);
+		if(ptr[aux]==NULL){
+			fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", ptr[aux]->keyString, key, index, aux, i);
 			return;
 		}
 		else{
-			i++;
-			aux = collisionTreatment(index, size, i, cod);
+			if(strcmp(input, ptr[aux]->keyString)==0){
+				fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", ptr[aux]->keyString, key, index, aux, i);
+				return;
+			}
+			else{
+				i++;
+				aux = collisionTreatment(index, size, i, cod);
+			}
 		}
-	} while(ptr[aux]->collisionFlag==1);
-	fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", ptr[aux]->keyString, key, index, aux, i);
+	} while(1);
 }
 
 // Re-hash dobrando o tamanho do vetor, retorna ponteiro para a nova lista

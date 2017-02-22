@@ -13,6 +13,7 @@
 struct Node{
 	char keyString[101];  // Guarda a String lida
 	struct Node *prox;    // Usado no tratamento por encadeamento
+	int collisionFlag;    // Flag se a celula sofreu alguma colisao
 }; typedef struct Node celHash;
 
 
@@ -82,13 +83,27 @@ int readInput (FILE *inputFile, char *input1, char *input2){
 		input2[tam] = '\0'; // Limpa as " do final da string
 		return rot_hash(input2, tam);
 	}
-	else
+	else{
 		return -1;
+	}
+}
+
+int collisionTreatment(int key, int size, int i, int cod){
+	switch(cod){
+		case LINEAR:
+			return f_hash(key, size, i);
+		case DUPLO:
+			return s_hash(key, size, i);
+		case QUADRATICA:
+			return 0;
+		case ENCADEAMENTO:
+			return 0;
+	}
 }
 
 // Insere na Hash
-void insert (celHash **ptr, int size, char *input, int key, int cod){
-	int i=0, aux = key;
+void insert (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
+	int i=0, aux = index;
 	do{
 		if (ptr[aux] == NULL){
 			ptr[aux] = (celHash *) malloc (sizeof(celHash));
@@ -97,67 +112,110 @@ void insert (celHash **ptr, int size, char *input, int key, int cod){
 				exit(0);
 			}
 			strncpy(ptr[aux]->keyString, input, 101);
-			printf("%d - %s\n", aux, ptr[aux]->keyString);
+			if (i>0){
+				ptr[aux]->collisionFlag = 1;
+			}
+			else{
+				ptr[aux]->collisionFlag = 0;
+			}
+			if(output!=NULL){
+				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", ptr[aux]->keyString, key, index, aux, i);
+			}
 			return;
 		}
 		else{
 			i++;
-			switch(cod){
-				case LINEAR:
-					aux = f_hash(key, size, i);
-					break;
-				case DUPLO:
-					aux = s_hash(key, size, i);
-					break;
-				case QUADRATICA:
-					break;
-				case ENCADEAMENTO:
-					break;
+			if (strcmp(ptr[aux]->keyString,input)==0){
+				if(output!=NULL){
+					fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", ptr[aux]->keyString, key, index, aux, i-1);
+				}
+				return;
+			}
+			else{
+				aux = collisionTreatment(index, size, i, cod);
 			}
 		}
 	} while (1);
 }
 
+int delete (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
+	/*int i=0, aux = index;
+	celHash *temp;
+	do{
+		if (strcmp(input, ptr[aux]->keyString)==0){
+			fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", ptr[aux]->keyString, key, index, aux, i);
+			temp = ptr[aux];
+			ptr[aux] = NULL;
+			free(temp);
+			return 1;
+		}
+		else{
+			i++;
+			aux = collisionTreatment(index, size, i, cod);
+		}
+	} while(ptr[aux]->collisionFlag==1);
+	fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", ptr[aux]->keyString, key, index, aux, i);
+	return -1;*/
+}
+
+void get (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
+	int i=0, aux = index;
+	do {
+		if (ptr[aux]!=NULL && strcmp(input, ptr[aux]->keyString)==0){
+			fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", ptr[aux]->keyString, key, index, aux, i);
+			return;
+		}
+		else{
+			i++;
+			aux = collisionTreatment(index, size, i, cod);
+		}
+	} while(ptr[aux]->collisionFlag==1);
+	fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", ptr[aux]->keyString, key, index, aux, i);
+}
+
 // Re-hash dobrando o tamanho do vetor, retorna ponteiro para a nova lista
 celHash **rehash (celHash **ptr, int *size, int cod){
 	celHash **newHash = startHash(*size*2);
-	int i, key;
+	int i, key, index;
 	for (i=0; i<*size; i++){
 		if (ptr[i]!=NULL){
 			key = rot_hash(ptr[i]->keyString, strlen(ptr[i]->keyString));  // Calcula a chave
-			key = f_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
-			insert(newHash, *size*2, ptr[i]->keyString, key, cod); // Insere na Nova hash
+			index = f_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+			insert(newHash, *size*2, ptr[i]->keyString, key, index, cod, NULL); // Insere na Nova hash
 		}
 	}
 	destroyHash(ptr, *size);  // Libera Hash antiga
 	*size = *size*2;
+	printf("%d\n" , *size);
 	return newHash;
 }
 
 void Hash (FILE *inputFile, FILE *outputFile, int cod){
 	char input1[7], input2[100];
-	int key, hashSize = INI_SIZE, loadHash = 0;
+	int key, index, hashSize = INI_SIZE, loadHash = 0;
 	celHash **head = startHash(hashSize);
 	
 	while (!feof(inputFile)){
 		key = readInput(inputFile, input1, input2);
 
-		if (key > 0){
-			key = f_hash(key, hashSize, 0);
+		if (key >= 0){
+			index = f_hash(key, hashSize, 0);
 
 			if(strcmp(input1, "INSERT") == 0){
-				insert(head, hashSize, input2, key, cod);
+				insert(head, hashSize, input2, key, index, cod, outputFile);
 				loadHash++;
 				if((loadHash/hashSize)>=L_FACTOR)
 					head = rehash(head, &hashSize, cod);
 			}
 			else{
 				if(strcmp(input1, "DELETE") == 0){
-					
+					if(delete(head, hashSize, input2, key, index, cod, outputFile)==1){
+						loadHash--;
+					}
 				}
 				else{
 					if(strcmp(input1, "GET") == 0){
-						
+						get(head, hashSize, input2, key, index, cod, outputFile);
 					}
 					else{
 						printf("\nERROR: input1 contain a invalid command .. Program closed!\n");

@@ -33,10 +33,5 @@
 *.su
 
 log_output.txt
-teste.c
 hash
-teste
-input_10
-input_10000
-input_100000
-Saídas-Rotating/*
+

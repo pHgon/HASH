@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #define ENCADEAMENTO 0
 #define LINEAR       1
@@ -42,7 +43,7 @@ int option (char argument[]){
 // Inicia a Hash
 celHash **startHash (int size){
 	int i;
-	celHash **ptr; 
+	celHash **ptr;
 	ptr = (celHash **) malloc (size * sizeof(celHash *));
 	if(ptr==NULL){
 		printf("ERROR: Null pointer!\n");
@@ -74,6 +75,21 @@ int rot_hash(void *key, int len){
 // Funcoes de dispersao hash primaria e secundaria
 int f_hash(int key, int size, int i){	return (key+i)%size;  }
 int s_hash(int key, int size, int i){	return 1+f_hash(key, size-1, i);  }
+
+int quad_hash(int key, int size, int i){
+	double j = i + 0.0;
+
+	return (int) f_hash(key, size, i) + i + sqrt(j);
+}
+
+int encad_hash(celHash **ptr, int key, int size, int i){
+	index = f_hash(key, size, i);
+	celHash *aux;
+
+	aux = ptr[index];
+
+
+}
 
 // Le do arquivo de entrada e retorna o valor da Key do Rotation Hash
 int readInput (FILE *inputFile, char *input1, char *input2){
@@ -121,6 +137,8 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 			}
 		}
 		else{
+			//O que ta sendo feito aqui?
+			//Seria a colisão e a troca da keystring interna? Ta contabilizando as colisões aonde
 			if(strncmp(ptr[aux]->keyString,"\0", 1)==1){
 				printf("entro\n");
 				strncpy(ptr[aux]->keyString, input, 101);
@@ -153,7 +171,7 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 			i++;
 			aux = collisionTreatment(index, size, i, cod);
 		}
-	} 
+	}
 	fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
 	return -1;
 }
@@ -199,7 +217,7 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 	char input1[7], input2[100];
 	int key, index, hashSize = INI_SIZE, loadHash = 0;
 	celHash **head = startHash(hashSize);
-	
+
 	while (!feof(inputFile)){
 		key = readInput(inputFile, input1, input2);
 
@@ -240,7 +258,7 @@ void main(int argc,char *argv[]){
     	printf("\nERROR: No argument received .. Program closed!\n");
     	exit(-1);
     }
-	
+
 	int opt = option(argv[1]);  // Recebe o codigo referente ao modo de tratamento escolhido
 	FILE *inputFile  = fopen (argv[2], "r");
 	FILE *outputFile = fopen("log_output.txt", "w");

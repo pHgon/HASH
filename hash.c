@@ -22,18 +22,18 @@ struct Node{
 // Retorna opcao de tratamento passado por parâmetro
 int option (char argument[]){
 	if ((strcmp(argument, "-encadeamento")) == 0)
-		return ENCADEAMENTO;
+	return ENCADEAMENTO;
 	else{
 		if ((strcmp(argument, "-linear")) == 0)
-			return LINEAR;
+		return LINEAR;
 		else{
 			if ((strcmp(argument, "-quadratica")) == 0)
-				return QUADRATICA;
+			return QUADRATICA;
 			else{
 				if ((strcmp(argument, "-hash_duplo")) == 0)
-					return DUPLO;
+				return DUPLO;
 				else
-					return -1;
+				return -1;
 			}
 		}
 	}
@@ -62,13 +62,13 @@ void destroyHash(celHash **ptr, int size){
 
 // Funcao HASH Rotation ou Rolling, recebe a chave a ser codificada e o tamanho
 int rot_hash(void *key, int len){
-    unsigned char *p = key;
-    int h = 0;
-    int i;
-    for (i = 0; i < len; i++){
-        h = (h << 4) ^ (h >> 28) ^ p[i];
-    }
-    return abs(h);
+	unsigned char *p = key;
+	int h = 0;
+	int i;
+	for (i = 0; i < len; i++){
+		h = (h << 4) ^ (h >> 28) ^ p[i];
+	}
+	return abs(h);
 }
 
 // Funcoes de dispersao hash primaria e secundaria
@@ -84,7 +84,7 @@ void chain_hash(celHash **ptr, int index, char *input){
 	celHash *aux, *aux2;
 
 	aux = ptr[index];
-
+	
 	aux2 = (celHash *)	malloc (sizeof(celHash));
 	strncpy(aux2->keyString, input, 101);
 
@@ -110,15 +110,15 @@ int collisionTreatment(celHash **ptr,int key, int size, int i, int cod, char *in
 
 	switch(cod){
 		case LINEAR:
-			return f_hash(key, size, i);
+		return f_hash(key, size, i);
 		case DUPLO:
-			return s_hash(key, size, i);
+		return s_hash(key, size, i);
 		case QUADRATICA:
-			return quad_hash(key, size, i);
+		return quad_hash(key, size, i);
 		case ENCADEAMENTO:
-			index = f_hash(key, size, i);
-			chain_hash(ptr, index, input);
-			return 1;
+		index = f_hash(key, size, i);
+		chain_hash(ptr, index, input);
+		return 1;
 	}
 }
 
@@ -225,7 +225,7 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 }
 
 void get (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
-	int i=0, aux = index;
+	int i=0, aux = index, int inChain;
 	do {
 		if(ptr[aux]==NULL){
 			fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
@@ -237,8 +237,26 @@ void get (celHash **ptr, int size, char *input, int key, int index, int cod, FIL
 				return;
 			}
 			else{
-				i++;
-				aux = collisionTreatment(ptr, key, size, i, cod, input);
+				if(cod != ENCADEAMENTO){
+					if (i >= size) {
+						fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+						return;
+					}
+					i++;
+					aux = collisionTreatment(ptr, key, size, i, cod, input);
+				}
+				else{
+					inChain = searchChain(ptr[aux], input);
+
+					if (inChain) {
+						fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+						return;
+					}
+					else{
+						fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+						return;
+					}
+				}
 			}
 		}
 	} while(1);
@@ -276,7 +294,7 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 				if(insert(head, hashSize, input2, key, index, cod, outputFile)==1){
 					loadHash++;
 					if((loadHash/hashSize)>=L_FACTOR)
-						head = rehash(head, &hashSize, cod);
+					head = rehash(head, &hashSize, cod);
 				}
 			}
 			else{
@@ -302,10 +320,10 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 
 
 void main(int argc,char *argv[]){
-    if(argc == 1){
-    	printf("\nERROR: No argument received .. Program closed!\n");
-    	exit(-1);
-    }
+	if(argc == 1){
+		printf("\nERROR: No argument received .. Program closed!\n");
+		exit(-1);
+	}
 
 	int opt = option(argv[1]);  // Recebe o codigo referente ao modo de tratamento escolhido
 	FILE *inputFile  = fopen (argv[2], "r");

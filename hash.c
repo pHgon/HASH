@@ -1,3 +1,32 @@
+
+Skip to content
+This repository
+
+    Pull requests
+    Issues
+    Gist
+
+    @Espeto
+
+1
+0
+
+    0
+
+pHgon/HASH
+Code
+Issues 0
+Pull requests 0
+Projects 0
+Wiki
+Pulse
+Graphs
+HASH/hash.c
+375c0f4 2 hours ago
+@pHgon pHgon Mudanças no insert
+@pHgon
+@Espeto
+357 lines (322 sloc) 10.8 KB
 // Trabalho Pratico 1 - Algoritmo e Estrutura de Dados II - 23/02/2017
 // Autores - Paulo Henrik Goncalves & Gilberto Kreisler
 
@@ -47,7 +76,7 @@ void main(int argc,char *argv[]){
     	printf("\nERROR: No argument received .. Program closed!\n");
     	exit(-1);
     }
-	
+
 	int opt = option(argv[1]);  // Recebe o codigo referente ao modo de tratamento escolhido
 	FILE *inputFile  = fopen (argv[2], "r");
 	FILE *outputFile = fopen("log_output.txt", "w");
@@ -92,7 +121,7 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 	char input1[7], input2[100];
 	int key, index, hashSize = INI_SIZE, loadHash = 0;
 	celHash **head = startHash(hashSize);  // Inicia o vetor de ponteiros
-	
+
 	while (!feof(inputFile)){
 		key = readInput(inputFile, input1, input2); // Le as entradas e calcula a key
 
@@ -129,7 +158,7 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 // Inicia a Hash alocando vetor de ponteiros
 celHash **startHash (int size){
 	int i;
-	celHash **ptr; 
+	celHash **ptr;
 	ptr = (celHash **) malloc (size * sizeof(celHash *));
 	if(ptr==NULL){
 		printf("ERROR: Null pointer!\n");
@@ -190,7 +219,7 @@ int rot_hash(void *key, int len){
     return abs(h);
 }
 
-// Funcoes de dispersao 
+// Funcoes de dispersao
 int h1(int key, int size){  return key%size;  }
 int h2(int key, int size){  return 1+(key%(size-1));  }
 
@@ -228,7 +257,7 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 	int i=0, aux = index;
 	celHash *temp = ptr[aux], *temp2; // Guarda o valor da Head;
 	do{
-		if(cod == ENCADEAMENTO){ 
+		if(cod == ENCADEAMENTO){
 			while(temp!=NULL){ // Percorre a Lista de forma linear pesquisando se a chave ja existe;
 				if(strcmp(temp->keyString, input)==0){
 					fprintf(output, "INSERT \"%s\" %d %d %d 0 FAIL\n", input, key, index, aux);
@@ -282,7 +311,7 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 					aux = collisionTreatment(key, size, i, cod);
 				}
 			}
-		} 
+		}
 	} while (1);
 }
 
@@ -305,7 +334,7 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 			}
 			else
 				strncpy(ptr[aux]->keyString, "\0", 1);
-			
+
 			fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 			ptr[aux] = temp; // Recupera a posicao inicial do vetor
 			return 1;
@@ -319,7 +348,7 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 			else
 				aux = collisionTreatment(key, size, i, cod);
 		}
-	} 
+	}
 	fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i); // Caso nao encontre celula para deletar
 	ptr[aux] = temp; // Recupera a posicao inicial do vetor
 	return -1;
@@ -344,7 +373,7 @@ void get (celHash **ptr, int size, char *input, int key, int index, int cod, FIL
 			else{
 				i++;
 				if(cod==ENCADEAMENTO) // Caso encadeado, percorre a lista
-					ptr[aux] = ptr[aux]->prox;				
+					ptr[aux] = ptr[aux]->prox;
 				else
 					aux = collisionTreatment(key, size, i, cod);
 			}
@@ -354,3 +383,6 @@ void get (celHash **ptr, int size, char *input, int key, int index, int cod, FIL
 
 
 
+    Contact GitHub API Training Shop Blog About
+
+    © 2017 GitHub, Inc. Terms Privacy Security Status Help

@@ -351,9 +351,3 @@ void get (celHash **ptr, int size, char *input, int key, int index, int cod, FIL
 		}
 	} while(1);
 }
-
-
-
-    Contact GitHub API Training Shop Blog About
-
-    © 2017 GitHub, Inc. Terms Privacy Security Status Help

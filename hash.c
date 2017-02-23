@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #define ENCADEAMENTO 0
 #define LINEAR       1
@@ -77,8 +76,7 @@ int f_hash(int key, int size, int i){	return (key+i)%size;  }
 int s_hash(int key, int size, int i){	return 1+f_hash(key, size-1, i);  }
 
 int quad_hash(int key, int size, int i){
-	double j = i + 0.0
-	return (int) f_hash(key, size, i) + i + sqrt(j);
+	return f_hash(key, size, i) + i + (i*i);
 }
 
 //Faz a inserção na primeira posição do encadeamento
@@ -88,10 +86,10 @@ void chain_hash(celHash **ptr, int index, char *input){
 	aux = ptr[index];
 
 	aux2 = (celHash *)	malloc (sizeof(celHash));
-	strncpy(aux2->keyString, input);
+	strncpy(aux2->keyString, input, 101);
 
 	aux2->prox = aux;
-	aux = aux2
+	aux = aux2;
 }
 
 // Le do arquivo de entrada e retorna o valor da Key do Rotation Hash
@@ -108,6 +106,8 @@ int readInput (FILE *inputFile, char *input1, char *input2){
 }
 
 int collisionTreatment(celHash **ptr,int key, int size, int i, int cod, char *input){
+	int index;
+
 	switch(cod){
 		case LINEAR:
 			return f_hash(key, size, i);
@@ -116,7 +116,7 @@ int collisionTreatment(celHash **ptr,int key, int size, int i, int cod, char *in
 		case QUADRATICA:
 			return quad_hash(key, size, i);
 		case ENCADEAMENTO:
-			int index = f_hash(key, size, i);
+			index = f_hash(key, size, i);
 			chain_hash(ptr, index, input);
 			return 1;
 	}
@@ -150,7 +150,7 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 
 				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 				return 1;
-				strncpy(ptr[aux]->keyString, input, 101
+				strncpy(ptr[aux]->keyString, input, 101);
 			}
 			else {
 				//Caso já possua algum elemento na célula e o metodo não for
@@ -173,13 +173,13 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 				else{
 					//Percorre a cadeia em uma posição pra saber se esta em alguma outra
 					//posição
-					int inChain = searchChain(ptr[aux], input);
-
-					//Caso esteja, flag de falha na inserção
-					if (inChain) {
+					//Caso esteja, retorna 1 -  dando falha na inserção
+					if (searchChain(ptr[aux], input)) {
 						if(output!=NULL){
 							fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
 						}
+
+						return 0;
 					}
 					//Caso contrário, faz o devido tratamento e insere na primeira posição
 					//Retornando 1

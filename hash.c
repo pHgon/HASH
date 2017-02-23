@@ -13,7 +13,7 @@
 #define LINEAR       1
 #define QUADRATICA   2
 #define DUPLO        3
-#define L_FACTOR     0.75
+#define L_FACTOR     0.75000f
 #define INI_SIZE     500
 
 
@@ -102,7 +102,7 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 			if(strcmp(input1, "INSERT") == 0){
 				if(insert(head, hashSize, input2, key, index, cod, outputFile)==1){
 					loadHash++;
-					if((loadHash/hashSize)>=L_FACTOR)
+					if(((float)loadHash/(float)hashSize)>=L_FACTOR)
 						head = rehash(head, &hashSize, cod);
 				}
 			}
@@ -245,11 +245,16 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 			}
 			strncpy(ptr[aux]->keyString, input, 101); // String para a nova celula
 			ptr[aux]->prox = NULL; // Ponteiro da nova é nulo, inserida no fim da lista
-			temp2->prox = ptr[aux]; // Anterior aponta para a nova
-			if(output!=NULL)
+			if(i==1){
+				temp2->prox = ptr[aux]; // Anterior aponta para a nova
+				ptr[aux] = temp;
+			}
+			if(output!=NULL){
 				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
-			ptr[aux] = temp;
-			return 1;
+				return 1;
+			}
+			else
+				return 0;
 		}
 		else{ // ESTA PARTE SEGUE SOMENTE PARA OS DEMAIS CASOS, FICA MAIS FACIL DE VISUALIZAR AGORA ------------------------
 			if (ptr[aux] == NULL){

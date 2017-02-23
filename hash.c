@@ -47,7 +47,7 @@ void main(int argc,char *argv[]){
     	printf("\nERROR: No argument received .. Program closed!\n");
     	exit(-1);
     }
-	
+
 	int opt = option(argv[1]);  // Recebe o codigo referente ao modo de tratamento escolhido
 	FILE *inputFile  = fopen (argv[2], "r");
 	FILE *outputFile = fopen("log_output.txt", "w");
@@ -92,7 +92,7 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 	char input1[7], input2[100];
 	int key, index, hashSize = INI_SIZE, loadHash = 0;
 	celHash **head = startHash(hashSize);  // Inicia o vetor de ponteiros
-	
+
 	while (!feof(inputFile)){
 		key = readInput(inputFile, input1, input2); // Le as entradas e calcula a key
 
@@ -129,7 +129,7 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 // Inicia a Hash alocando vetor de ponteiros
 celHash **startHash (int size){
 	int i;
-	celHash **ptr; 
+	celHash **ptr;
 	ptr = (celHash **) malloc (size * sizeof(celHash *));
 	if(ptr==NULL){
 		printf("ERROR: Null pointer!\n");
@@ -190,7 +190,7 @@ int rot_hash(void *key, int len){
     return abs(h);
 }
 
-// Funcoes de dispersao 
+// Funcoes de dispersao
 int h1(int key, int size){  return key%size;  }
 int h2(int key, int size){  return 1+(key%(size-1));  }
 
@@ -228,7 +228,7 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 	int i=0, aux = index;
 	celHash *temp = ptr[aux], *temp2; // Guarda o valor da Head;
 	do{
-		if(cod == ENCADEAMENTO){ 
+		if(cod == ENCADEAMENTO){
 			while(ptr[aux]!=NULL){ // Percorre a Lista de forma linear pesquisando se a chave ja existe;
 				if(strcmp(ptr[aux]->keyString, input)==0){
 					fprintf(output, "INSERT \"%s\" %d %d %d 0 FAIL\n", input, key, index, aux);
@@ -245,13 +245,6 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 			}
 			strncpy(ptr[aux]->keyString, input, 101); // String para a nova celula
 			ptr[aux]->prox = NULL; // Ponteiro da nova é nulo, inserida no fim da lista
-<<<<<<< HEAD
-			temp2->prox = ptr[aux]; // Anterior aponta para a nova
-			if(output!=NULL)
-				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
-			ptr[aux] = temp;
-			return 1;
-=======
 			if(i==1){
 				temp2->prox = ptr[aux]; // Anterior aponta para a nova
 				ptr[aux] = temp;
@@ -262,7 +255,6 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 			}
 			else
 				return 0;
->>>>>>> dbffa12922830b282b990d6cb8ad12615596ca7e
 		}
 		else{ // ESTA PARTE SEGUE SOMENTE PARA OS DEMAIS CASOS, FICA MAIS FACIL DE VISUALIZAR AGORA ------------------------
 			if (ptr[aux] == NULL){
@@ -296,7 +288,7 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 					aux = collisionTreatment(key, size, i, cod);
 				}
 			}
-		} 
+		}
 	} while (1);
 }
 
@@ -319,7 +311,7 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 			}
 			else
 				strncpy(ptr[aux]->keyString, "\0", 1);
-			
+
 			fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 			ptr[aux] = temp; // Recupera a posicao inicial do vetor
 			return 1;
@@ -333,7 +325,7 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 			else
 				aux = collisionTreatment(key, size, i, cod);
 		}
-	} 
+	}
 	fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i); // Caso nao encontre celula para deletar
 	ptr[aux] = temp; // Recupera a posicao inicial do vetor
 	return -1;
@@ -358,13 +350,10 @@ void get (celHash **ptr, int size, char *input, int key, int index, int cod, FIL
 			else{
 				i++;
 				if(cod==ENCADEAMENTO) // Caso encadeado, percorre a lista
-					ptr[aux] = ptr[aux]->prox;				
+					ptr[aux] = ptr[aux]->prox;
 				else
 					aux = collisionTreatment(key, size, i, cod);
 			}
 		}
 	} while(1);
 }
-
-
-

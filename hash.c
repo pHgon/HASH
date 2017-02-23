@@ -97,7 +97,18 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 		key = readInput(inputFile, input1, input2); // Le as entradas e calcula a key
 
 		if (key >= 0){
-			index = f_hash(key, hashSize, 0);
+			
+			switch(cod){
+				case DUPLO:
+					index = s_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+					break;
+				case QUADRATICA:
+					index = q_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+					break;
+				default:
+					index = f_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+					break;
+			}
 
 			if(strcmp(input1, "INSERT") == 0){
 				if(insert(head, hashSize, input2, key, index, cod, outputFile)==1){
@@ -147,7 +158,19 @@ celHash **rehash (celHash **ptr, int *size, int cod){
 		temp = ptr[i]; // Salva a posicao inicial da lista
 		while(ptr[i]!=NULL && strncmp(ptr[i]->keyString,"\0", 1)!=1){
 			key = rot_hash(ptr[i]->keyString, strlen(ptr[i]->keyString));  // Calcula a chave
-			index = f_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+
+			switch(cod){
+				case DUPLO:
+					index = s_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+					break;
+				case QUADRATICA:
+					index = q_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+					break;
+				default:
+					index = f_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+					break;
+			}
+
 			insert(newHash, *size*2, ptr[i]->keyString, key, index, cod, NULL); // Insere na Nova hash
 			ptr[i] = ptr[i]->prox; // Caso a seja o modo encadeado, a lista percorre ate o final
 		}
@@ -337,13 +360,19 @@ void get (celHash **ptr, int size, char *input, int key, int index, int cod, FIL
 	celHash* temp = ptr[aux]; // Salva a posicao inicial
 	do {
 		if(ptr[aux]==NULL){ // Se nenhuma chave foi inserida nesta posicao
-			fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+			if(i>0 && cod==ENCADEAMENTO)
+				fprintf(output, "GET \"%s\" %d %d %d 0 FAIL\n", input, key, index, aux);
+			else
+				fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
 			ptr[aux] = temp; // Recupera a posicao inicial do vetor
 			return;
 		}
 		else{
 			if(strcmp(input, ptr[aux]->keyString)==0){ // Se a chave esta nesta posicao
-				fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+				if(i>0 && cod==ENCADEAMENTO)
+					fprintf(output, "GET \"%s\" %d %d %d 1 SUCCESS\n", input, key, index, aux);
+				else
+					fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 				ptr[aux] = temp; // Recupera a posicao inicial do vetor
 				return;
 			}

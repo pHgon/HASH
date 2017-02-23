@@ -77,18 +77,21 @@ int f_hash(int key, int size, int i){	return (key+i)%size;  }
 int s_hash(int key, int size, int i){	return 1+f_hash(key, size-1, i);  }
 
 int quad_hash(int key, int size, int i){
-	double j = i + 0.0;
-
+	double j = i + 0.0
 	return (int) f_hash(key, size, i) + i + sqrt(j);
 }
 
-int encad_hash(celHash **ptr, int key, int size, int i){
-	index = f_hash(key, size, i);
-	celHash *aux;
+//Faz a inserção na primeira posição do encadeamento
+void chain_hash(celHash **ptr, int index, char *input){
+	celHash *aux, *aux2;
 
 	aux = ptr[index];
 
+	aux2 = (celHash *)	malloc (sizeof(celHash));
+	strncpy(aux2->keyString, input);
 
+	aux2->prox = aux;
+	aux = aux2
 }
 
 // Le do arquivo de entrada e retorna o valor da Key do Rotation Hash
@@ -104,16 +107,18 @@ int readInput (FILE *inputFile, char *input1, char *input2){
 	}
 }
 
-int collisionTreatment(int key, int size, int i, int cod){
+int collisionTreatment(celHash **ptr,int key, int size, int i, int cod, char *input){
 	switch(cod){
 		case LINEAR:
 			return f_hash(key, size, i);
 		case DUPLO:
 			return s_hash(key, size, i);
 		case QUADRATICA:
-			return 0;
+			return quad_hash(key, size, i);
 		case ENCADEAMENTO:
-			return 0;
+			int index = f_hash(key, size, i);
+			chain_hash(ptr, index, input);
+			return 1;
 	}
 }
 
@@ -137,26 +142,69 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 			}
 		}
 		else{
-			//O que ta sendo feito aqui?
-			//Seria a colisão e a troca da keystring interna? Ta contabilizando as colisões aonde
+			//Tratamento para evitar alocar e desalocar seguidamente
+			//Marca uma celula com a string '\0' indicando que está vazia
+			//E que esse espaço ja foi utilizado
 			if(strncmp(ptr[aux]->keyString,"\0", 1)==1){
 				printf("entro\n");
-				strncpy(ptr[aux]->keyString, input, 101);
+
 				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 				return 1;
+				strncpy(ptr[aux]->keyString, input, 101
 			}
-			else{
-				i++;
-				if (strcmp(ptr[aux]->keyString,input)==0){ // Caso string ja esteja inserida na lista
-					if(output!=NULL){
-						fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i-1);
+			else {
+				//Caso já possua algum elemento na célula e o metodo não for
+				//de encademento, compara pra saber se é o mesmo valor
+				//caso não, prosegue com o tratamento de colisão
+				if (cod != ENCADEAMENTO) {
+
+					i++;
+
+					if (strcmp(ptr[aux]->keyString,input)==0){ // Caso string ja esteja inserida na lista
+						if(output!=NULL){
+							fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i-1);
+						}
+						return 0;
 					}
-					return 0;
+
+					aux = collisionTreatment(ptr, key, size, i, cod, input);
 				}
-				aux = collisionTreatment(index, size, i, cod);
+				//Caso o metodo seja de encadeamento
+				else{
+					//Percorre a cadeia em uma posição pra saber se esta em alguma outra
+					//posição
+					int inChain = searchChain(ptr[aux], input);
+
+					//Caso esteja, flag de falha na inserção
+					if (inChain) {
+						if(output!=NULL){
+							fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+						}
+					}
+					//Caso contrário, faz o devido tratamento e insere na primeira posição
+					//Retornando 1
+					else{
+						return collisionTreatment(ptr, key, size, i, cod, input);
+					}
+				}
 			}
 		}
 	} while (1);
+}
+
+//Faz a busca no encadeamento pela input string
+//Caso encontre, retona 1 - cc 0
+int searchChain(celHash *ptr, char *input){
+	celHash *aux = ptr;
+
+	while (aux != NULL) {
+		if(strcmp(aux->keyString, input) == 0){
+			return 1;
+		}
+		aux = aux -> prox;
+	}
+
+	return 0;
 }
 
 int delete (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
@@ -169,7 +217,7 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 		}
 		else{
 			i++;
-			aux = collisionTreatment(index, size, i, cod);
+			aux = collisionTreatment(ptr, key, size, i, cod, input);
 		}
 	}
 	fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
@@ -190,7 +238,7 @@ void get (celHash **ptr, int size, char *input, int key, int index, int cod, FIL
 			}
 			else{
 				i++;
-				aux = collisionTreatment(index, size, i, cod);
+				aux = collisionTreatment(ptr, key, size, i, cod, input);
 			}
 		}
 	} while(1);

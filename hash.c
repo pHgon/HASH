@@ -226,57 +226,63 @@ int collisionTreatment(int key, int size, int i, int cod){
 // Insere na Hash
 int insert (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
 	int i=0, aux = index;
-	celHash *temp = ptr[aux]; // Guarda o valor da Head;
+	celHash *temp = ptr[aux], *temp2; // Guarda o valor da Head;
 	do{
-		if(cod == ENCADEAMENTO){
+		if(cod == ENCADEAMENTO){ 
 			while(temp!=NULL){ // Percorre a Lista de forma linear pesquisando se a chave ja existe;
 				if(strcmp(temp->keyString, input)==0){
-					fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+					fprintf(output, "INSERT \"%s\" %d %d %d 0 FAIL\n", input, key, index, aux);
 					return 0;
 				}
-				i++;
-				temp = temp->prox;
+				temp2 = temp; // Ponteiro posicao anterior
+				temp = temp->prox;	// Ponteiro para proxima
+				i=1; // Valor teste pra comparar as saidas depois
 			}
-			temp = ptr[aux]; // Reseta os auxiliares
-			i=0;
-		}
-
-		if (ptr[aux] == NULL || cod==ENCADEAMENTO){
-			ptr[aux] = (celHash *) malloc (sizeof(celHash)); // Aloca a celula para inserir a chave
-			if(ptr[aux]==NULL){
+			temp = (celHash *) malloc (sizeof(celHash)); // Aloca a nova
+			if(temp==NULL){
 				printf("ERROR: Null pointer!\n");
 				exit(0);
 			}
-			strncpy(ptr[aux]->keyString, input, 101); // String para a nova celula
-			if(cod==ENCADEAMENTO){
-				ptr[aux]->prox = temp; // Nova celula aponta para o proximo da head
-			}
-
-			if(output!=NULL){ // Se a insercao vem do rehash nao e necessario imprimir a mensagem
+			strncpy(temp->keyString, input, 101); // String para a nova celula
+			temp->prox = NULL; // Ponteiro da nova é nulo, inserida no fim da lista
+			temp2->prox = temp; // Anterior aponta para a nova
+			if(output!=NULL)
 				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
-				return 1;
-			}
-			else
-				return 0;
+			return 1;
 		}
-
-		else{
-			if(strncmp(ptr[aux]->keyString,"\0", 1)==1){ // Caso string tenha sido deletada
-				strncpy(ptr[aux]->keyString, input, 101);
-				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
-				return 1;
+		else{ // ESTA PARTE SEGUE SOMENTE PARA OS DEMAIS CASOS, FICA MAIS FACIL DE VISUALIZAR AGORA ------------------------
+			if (ptr[aux] == NULL){
+				ptr[aux] = (celHash *) malloc (sizeof(celHash)); // Aloca a celula para inserir a chave
+				if(ptr[aux]==NULL){
+					printf("ERROR: Null pointer!\n");
+					exit(0);
+				}
+				strncpy(ptr[aux]->keyString, input, 101); // String para a nova celula
+				if(output!=NULL){ // Se a insercao vem do rehash nao e necessario imprimir a mensagem
+					fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+					return 1;
+				}
+				else
+					return 0;
 			}
 			else{
-				if (strcmp(ptr[aux]->keyString,input)==0){ // Caso string ja esteja inserida na lista
-					if(output!=NULL){ // Se a insercao vem do rehash nao e necessario imprimir a mensagem
-						fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
-					}
-					return 0;
+				if(strncmp(ptr[aux]->keyString,"\0", 1)==1){ // Caso string tenha sido deletada
+					strncpy(ptr[aux]->keyString, input, 101);
+					fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+					return 1;
 				}
-				i++;
-				aux = collisionTreatment(key, size, i, cod);
+				else{
+					if(strcmp(ptr[aux]->keyString,input)==0){ // Caso string ja esteja inserida na lista
+						if(output!=NULL){ // Se a insercao vem do rehash nao e necessario imprimir a mensagem
+							fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+						}
+						return 0;
+					}
+					i++;
+					aux = collisionTreatment(key, size, i, cod);
+				}
 			}
-		}
+		} 
 	} while (1);
 }
 

@@ -229,25 +229,26 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 	celHash *temp = ptr[aux], *temp2; // Guarda o valor da Head;
 	do{
 		if(cod == ENCADEAMENTO){ 
-			while(temp!=NULL){ // Percorre a Lista de forma linear pesquisando se a chave ja existe;
-				if(strcmp(temp->keyString, input)==0){
+			while(ptr[aux]!=NULL){ // Percorre a Lista de forma linear pesquisando se a chave ja existe;
+				if(strcmp(ptr[aux]->keyString, input)==0){
 					fprintf(output, "INSERT \"%s\" %d %d %d 0 FAIL\n", input, key, index, aux);
 					return 0;
 				}
-				temp2 = temp; // Ponteiro posicao anterior
-				temp = temp->prox;	// Ponteiro para proxima
+				temp2 = ptr[aux]; // Ponteiro posicao anterior
+				ptr[aux] = ptr[aux]->prox;	// Ponteiro para proxima
 				i=1; // Valor teste pra comparar as saidas depois
 			}
-			temp = (celHash *) malloc (sizeof(celHash)); // Aloca a nova
-			if(temp==NULL){
+			ptr[aux] = (celHash *) malloc (sizeof(celHash)); // Aloca a nova
+			if(ptr[aux]==NULL){
 				printf("ERROR: Null pointer!\n");
 				exit(0);
 			}
-			strncpy(temp->keyString, input, 101); // String para a nova celula
-			temp->prox = NULL; // Ponteiro da nova é nulo, inserida no fim da lista
-			temp2->prox = temp; // Anterior aponta para a nova
+			strncpy(ptr[aux]->keyString, input, 101); // String para a nova celula
+			ptr[aux]->prox = NULL; // Ponteiro da nova é nulo, inserida no fim da lista
+			temp2->prox = ptr[aux]; // Anterior aponta para a nova
 			if(output!=NULL)
 				fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+			ptr[aux] = temp;
 			return 1;
 		}
 		else{ // ESTA PARTE SEGUE SOMENTE PARA OS DEMAIS CASOS, FICA MAIS FACIL DE VISUALIZAR AGORA ------------------------

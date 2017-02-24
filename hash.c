@@ -360,18 +360,17 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 // Deleta na Hash
 int delete (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
 	int i=0, aux = index;
-	celHash *temp = ptr[aux], *temp2 = ptr[aux]; // Guarda a posicao incial
 
 	if (cod == ENCADEAMENTO) {
 		return delete_chain(ptr, input, key, index, output);
 	}
 
 	else{
-		while(temp != NULL){
+		while(ptr[aux] != NULL){
 
-			if (strcmp(input, temp->keyString)==0){
+			if (strcmp(input, ptr[aux]->keyString)==0){
 
-				strncpy(temp->keyString, "\0", 1);
+				strncpy(ptr[aux]->keyString, "\0", 1);
 
 				if(output != NULL){
 					fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
@@ -382,7 +381,6 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 			else{
 				i++;
 				aux = collisionTreatment(key, size, i, cod);
-				temp = ptr[aux];
 			}
 		}
 
@@ -421,7 +419,7 @@ int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 			temp = temp->prox;
 
 			if(i < 1)
-			i++;
+				i++;
 
 		}while(temp != NULL);
 
@@ -436,7 +434,6 @@ int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 // Busca na Hash por uma chave
 void get (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
 	int i=0, aux = index;
-	celHash* temp = ptr[aux]; // Salva a posicao inicial
 
 	if (cod == ENCADEAMENTO) {
 		get_chain(ptr, input, key, index, output);
@@ -444,14 +441,14 @@ void get (celHash **ptr, int size, char *input, int key, int index, int cod, FIL
 	}
 	else{
 		do {
-			if(temp == NULL){ // Se nenhuma chave foi inserida nesta posicao
+			if(ptr[aux] == NULL){ // Se nenhuma chave foi inserida nesta posicao
 				if(output != NULL){
 					fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
 				}
 				return;
 			}
 			else{
-				if(strcmp(input, temp->keyString)==0){ // Se a chave esta nesta posicao
+				if(strcmp(input, ptr[aux]->keyString)==0){ // Se a chave esta nesta posicao
 					if(output != NULL){
 						fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 					}
@@ -460,7 +457,6 @@ void get (celHash **ptr, int size, char *input, int key, int index, int cod, FIL
 				else{
 					i++;
 					aux = collisionTreatment(key, size, i, cod);
-					temp = ptr[aux];
 				}
 			}
 		} while(1);

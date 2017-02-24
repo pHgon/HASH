@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define ENCADEAMENTO 0
 #define LINEAR       1
@@ -95,6 +96,7 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 	char input1[7], input2[100];
 	int key, index, hashSize = INI_SIZE, loadHash = 0;
 	celHash **head = startHash(hashSize);  // Inicia o vetor de ponteiros
+	clock_t start, end; // Variaveis para printar tempo de exucução das func insert - get - delete
 
 	while (!feof(inputFile)){
 		key = readInput(inputFile, input1, input2); // Le as entradas e calcula a key
@@ -114,21 +116,33 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 			}
 
 			if(strcmp(input1, "INSERT") == 0){
+				start = clock();
 				if(insert(head, hashSize, input2, key, index, cod, outputFile)==1){
 					loadHash++;
 					if(((float)loadHash/(float)hashSize)>=L_FACTOR)
 					head = rehash(head, &hashSize, cod);
 				}
+				end = clock();
+				printf("\nINSERT TIME: %lf\n", ((double) (end - start)/CLOCKS_PER_SEC));
 			}
 			else{
 				if(strcmp(input1, "DELETE") == 0){
+					start = clock();
 					if(delete(head, hashSize, input2, key, index, cod, outputFile)==1){
 						loadHash--;
 					}
+					end = clock();
+					printf("\nDELETE TIME: %lf\n", ((double) (end - start)/CLOCKS_PER_SEC));
 				}
 				else{
-					if(strcmp(input1, "GET") == 0)
+					if(strcmp(input1, "GET") == 0){
+					start = clock();
 					get(head, hashSize, input2, key, index, cod, outputFile);
+					end = clock();
+
+					printf("\nGET TIME: %lf\n", ((double) (end - start)/CLOCKS_PER_SEC));
+				}
+
 					else{
 						printf("\nERROR: input1 contain a invalid command .. Program closed!\n");
 						exit(-1);
@@ -324,7 +338,7 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 		do{
 			if (strcmp(temp->keyString, input) == 0) {
 				if(output != NULL){
-					fprintf(output, "INSERT \"%s\" %d %d %d 0 FAIL\n", input, key, index, aux);
+					fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
 				}
 				return 0;
 			}
@@ -332,7 +346,7 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 			temp2 = temp;
 			temp = temp->prox;
 
-			if (i<1) {
+			if (i<1 && temp != NULL) {
 				i++;
 			}
 
@@ -418,7 +432,7 @@ int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 			temp2 = temp;
 			temp = temp->prox;
 
-			if(i < 1)
+			if(i < 1 && temp != NULL)
 				i++;
 
 		}while(temp != NULL);
@@ -470,7 +484,7 @@ void get_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 	do{
 		if(temp == NULL){
 			if(output != NULL){
-				fprintf(output, "GET \"%s\" %d %d %d 0 FAIL\n", input, key, index, aux);
+				fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
 			}
 			return;
 		}
@@ -478,14 +492,18 @@ void get_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 		else{
 			if (strcmp(input, temp->keyString) == 0) {
 				if(output != NULL){
-					fprintf(output, "GET \"%s\" %d %d %d 1 SUCCESS\n", input, key, index, aux);
+					fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 				}
 				return;
 			}
 
 			temp = temp->prox;
+
+			if(i < 1 && temp != NULL)
+				i++;
 		}
 	} while(temp != NULL);
+
 	if(output != NULL){
 		fprintf(output, "GET \"%s\" %d %d %d 1 SUCCESS\n", input, key, index, aux);
 	}

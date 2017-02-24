@@ -17,6 +17,8 @@
 #define L_FACTOR     0.75000f
 #define INI_SIZE     500
 
+int totalCollisions=0;
+
 
 // Celula Hash
 struct Node{
@@ -94,9 +96,10 @@ int option (char argument[]){
 
 void Hash (FILE *inputFile, FILE *outputFile, int cod){
 	char input1[7], input2[100];
-	int key, index, hashSize = INI_SIZE, loadHash = 0;
+	int key, index, hashSize = INI_SIZE, loadHash = 0, aux;
 	celHash **head = startHash(hashSize);  // Inicia o vetor de ponteiros
 	clock_t start, end; // Variaveis para printar tempo de exucução das func insert - get - delete
+	double totalInsert=0, totalGet=0, totalDelete=0;
 
 	while (!feof(inputFile)){
 		key = readInput(inputFile, input1, input2); // Le as entradas e calcula a key
@@ -105,25 +108,26 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 
 			switch(cod){
 				case DUPLO:
-				index = s_hash(key, hashSize, 0);  // Calcula a Funcao Hash Inicial
-				break;
+					index = s_hash(key, hashSize, 0);  // Calcula a Funcao Hash Inicial
+					break;
 				case QUADRATICA:
-				index = q_hash(key, hashSize, 0);  // Calcula a Funcao Hash Inicial
-				break;
+					index = q_hash(key, hashSize, 0);  // Calcula a Funcao Hash Inicial
+					break;
 				default:
-				index = f_hash(key, hashSize, 0);  // Calcula a Funcao Hash Inicial
-				break;
+					index = f_hash(key, hashSize, 0);  // Calcula a Funcao Hash Inicial
+					break;
 			}
 
 			if(strcmp(input1, "INSERT") == 0){
 				start = clock();
-				if(insert(head, hashSize, input2, key, index, cod, outputFile)==1){
+				aux = insert(head, hashSize, input2, key, index, cod, outputFile);
+				end = clock();
+				if(aux==1){
 					loadHash++;
 					if(((float)loadHash/(float)hashSize)>=L_FACTOR)
 					head = rehash(head, &hashSize, cod);
 				}
-				end = clock();
-				printf("\nINSERT TIME: %lf\n", ((double) (end - start)/CLOCKS_PER_SEC));
+				totalInsert += (double)(end - start)/CLOCKS_PER_SEC;
 			}
 			else{
 				if(strcmp(input1, "DELETE") == 0){
@@ -132,15 +136,14 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 						loadHash--;
 					}
 					end = clock();
-					printf("\nDELETE TIME: %lf\n", ((double) (end - start)/CLOCKS_PER_SEC));
+					totalDelete += (double)(end - start)/CLOCKS_PER_SEC;
 				}
 				else{
 					if(strcmp(input1, "GET") == 0){
 					start = clock();
 					get(head, hashSize, input2, key, index, cod, outputFile);
 					end = clock();
-
-					printf("\nGET TIME: %lf\n", ((double) (end - start)/CLOCKS_PER_SEC));
+					totalGet += (double)(end - start)/CLOCKS_PER_SEC;
 				}
 
 					else{
@@ -151,6 +154,8 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 			}
 		}
 	}
+	fprintf(outputFile, "%d", totalCollisions);
+	printf("\nINSERT TIME: %7.6lf\nDELETE TIME: %7.6lf\nGET TIME:    %7.6lf\n\n", totalInsert, totalDelete,totalGet);
 	destroyHash(head, hashSize, cod);
 }
 
@@ -269,7 +274,7 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 	int i=0, aux = index;
 
 	//Tratando o encadeamento separadamente - ajuda na abstração
-	if (cod == ENCADEAMENTO) {
+	if (cod == ENCADEAMENTO){
 		return insert_chain(ptr, input, key, index, output);
 	}
 
@@ -285,15 +290,17 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 				strncpy(ptr[aux]->keyString, input, 101); // String para a nova celula
 				if(output!=NULL){ // Se a insercao vem do rehash nao e necessario imprimir a mensagem
 					fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+					totalCollisions+=i;
 					return 1;
 				}
 				else
-				return 0;
+					return 0;
 			}
 			else{
 				if(strncmp(ptr[aux]->keyString,"\0", 1)==0){ // Caso string tenha sido deletada
 					strncpy(ptr[aux]->keyString, input, 101);
 					fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+					totalCollisions+=i;
 					return 1;
 				}
 				else{
@@ -389,6 +396,7 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 				if(output != NULL){
 					fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 				}
+				totalCollisions+=i;
 				return 1;
 			}
 
@@ -451,7 +459,6 @@ void get (celHash **ptr, int size, char *input, int key, int index, int cod, FIL
 
 	if (cod == ENCADEAMENTO) {
 		get_chain(ptr, input, key, index, output);
-		return;
 	}
 	else{
 		do {
@@ -466,6 +473,7 @@ void get (celHash **ptr, int size, char *input, int key, int index, int cod, FIL
 					if(output != NULL){
 						fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 					}
+					totalCollisions+=i;
 					return;
 				}
 				else{

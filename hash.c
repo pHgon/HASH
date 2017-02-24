@@ -314,7 +314,7 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 			fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 			return 1;
 		}
-		else 
+		else
 			return 0;
 	}
 
@@ -323,7 +323,7 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 			if (strcmp(temp->keyString, input) == 0) {
 				if(output != NULL){
 					fprintf(output, "INSERT \"%s\" %d %d %d 0 FAIL\n", input, key, index, aux);
-				} 
+				}
 				return 0;
 			}
 
@@ -350,7 +350,7 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 			fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 			return 1;
 		}
-		else 
+		else
 			return 0;
 	}
 }
@@ -359,39 +359,63 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 int delete (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
 	int i=0, aux = index;
 	celHash *temp = ptr[aux], *temp2 = ptr[aux]; // Guarda a posicao incial
-	while(ptr[aux]!=NULL){
-		if (strcmp(input, ptr[aux]->keyString)==0){
-			if(cod==ENCADEAMENTO){
-				if(i=0){ // Caso encontre a chave na primeira posicao
-					ptr[aux]=ptr[aux]->prox; // Head aponta para a proxima na lista;
-					free(temp2); // Libera a primeira celula
-				}
-				else{ // Caso encontre a chave nas demais posicoes
-					temp2->prox = ptr[aux]->prox; // Celula anterior aponta para a proxima celula
-					temp2 = ptr[aux]; // Recebe a celula que sera deletada
-					free(temp2);
-				}
-			}
-			else
-			strncpy(ptr[aux]->keyString, "\0", 1);
 
-			fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
-			ptr[aux] = temp; // Recupera a posicao inicial do vetor
-			return 1;
-		}
-		else{
-			i++;
-			if(cod==ENCADEAMENTO){
-				temp2 = ptr[aux]; // Salva a posicao anterior da celula que será comparada
-				ptr[aux] = ptr[aux]->prox;	// Celula que sera comparada
-			}
-			else
-			aux = collisionTreatment(key, size, i, cod);
-		}
+	if (cod == ENCADEAMENTO) {
+		return delete_chain(ptr, input, key, index, output);
 	}
-	fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i); // Caso nao encontre celula para deletar
-	ptr[aux] = temp; // Recupera a posicao inicial do vetor
-	return -1;
+
+	else{
+		while(ptr[aux] != NULL){
+
+			if (strcmp(input, ptr[aux]->keyString)==0){
+
+				strncpy(ptr[aux]->keyString, "\0", 1);
+
+				fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+				ptr[aux] = temp; // Recupera a posicao inicial do vetor
+				return 1;
+			}
+			else{
+				i++;
+				aux = collisionTreatment(key, size, i, cod);
+			}
+		}
+		fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i); // Caso nao encontre celula para deletar
+		return -1;
+	}
+}
+
+int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output){
+	int i=0, aux = index;
+	celHash *temp = ptr[aux], *temp2; // Guarda a posicao incial
+
+	if (ptr[aux] == NULL) {
+		fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+		return 0;
+	}
+
+	else{
+		do{
+			if (strcmp(temp->keyString, input) == 0) {
+				temp2 = temp;
+				temp = temp->prox;
+				free(temp2);
+				fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+				return 1;
+			}
+
+			temp2 = temp;
+			temp = temp->prox;
+
+			if(i < 1)
+				i++;
+
+		}while(temp != NULL);
+
+		fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+		return 0;
+	}
+
 }
 
 // Busca na Hash por uma chave

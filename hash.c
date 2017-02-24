@@ -335,12 +335,12 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 
 		if(output != NULL){
 			fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+			totalCollisions+=i;
 			return 1;
 		}
 		else
-		return 0;
+			return 0;
 	}
-
 	else{
 		do{
 			if (strcmp(temp->keyString, input) == 0) {
@@ -350,12 +350,11 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 				return 0;
 			}
 
+			if (i<1)
+				i++;
+
 			temp2 = temp;
 			temp = temp->prox;
-
-			if (i<1 && temp != NULL) {
-				i++;
-			}
 
 		} while(temp != NULL);
 
@@ -371,6 +370,7 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 
 		if(output!=NULL){
 			fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+			totalCollisions+=i;
 			return 1;
 		}
 		else
@@ -388,14 +388,9 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 
 	else{
 		while(ptr[aux] != NULL){
-
 			if (strcmp(input, ptr[aux]->keyString)==0){
-
 				strncpy(ptr[aux]->keyString, "\0", 1);
-
-				if(output != NULL){
-					fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
-				}
+				fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 				totalCollisions+=i;
 				return 1;
 			}
@@ -405,17 +400,14 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 				aux = collisionTreatment(key, size, i, cod);
 			}
 		}
-
-		if(output != NULL){
-			fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i); // Caso nao encontre celula para deletar
-		}
+		fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i); // Caso nao encontre celula para deletar
 		return -1;
 	}
 }
 
 int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 	int i=0, aux = index;
-	celHash *temp = ptr[aux], *temp2; // Guarda a posicao incial
+	celHash *temp = ptr[aux], *temp2=NULL; // Guarda a posicao incial
 
 	if (ptr[aux] == NULL) {
 		if(output != NULL){
@@ -427,27 +419,29 @@ int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 	else{
 		do{
 			if (strcmp(temp->keyString, input) == 0) {
-				temp2 = temp;
-				temp = temp->prox;
-				free(temp2);
-
-				if(output != NULL){
-					fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+				if(i==0){
+					ptr[aux]=NULL;
+					free(temp);
 				}
+				else{
+					temp2->prox=temp->prox;
+					free(temp2);
+				}
+
+				fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+				totalCollisions+=i;
 				return 1;
 			}
 
 			temp2 = temp;
 			temp = temp->prox;
 
-			if(i < 1 && temp != NULL)
+			if(i < 1)
 				i++;
 
-		}while(temp != NULL);
-
-		if(output != NULL){
-			fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
-		}
+		} while(temp != NULL);
+		
+		fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
 		return 0;
 	}
 
@@ -463,16 +457,12 @@ void get (celHash **ptr, int size, char *input, int key, int index, int cod, FIL
 	else{
 		do {
 			if(ptr[aux] == NULL){ // Se nenhuma chave foi inserida nesta posicao
-				if(output != NULL){
-					fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
-				}
+				fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
 				return;
 			}
 			else{
 				if(strcmp(input, ptr[aux]->keyString)==0){ // Se a chave esta nesta posicao
-					if(output != NULL){
-						fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
-					}
+					fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 					totalCollisions+=i;
 					return;
 				}
@@ -489,30 +479,17 @@ void get_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 	int i = 0, aux = index;
 	celHash* temp = ptr[aux];
 
-	do{
-		if(temp == NULL){
-			if(output != NULL){
-				fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
-			}
+	while(temp!=NULL){
+		if (strcmp(input, temp->keyString) == 0) {
+			fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+			totalCollisions+=i;
 			return;
 		}
-
 		else{
-			if (strcmp(input, temp->keyString) == 0) {
-				if(output != NULL){
-					fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
-				}
-				return;
-			}
-
 			temp = temp->prox;
-
-			if(i < 1 && temp != NULL)
+			if(i < 1)
 				i++;
 		}
-	} while(temp != NULL);
-
-	if(output != NULL){
-		fprintf(output, "GET \"%s\" %d %d %d 1 SUCCESS\n", input, key, index, aux);
 	}
+	fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
 }

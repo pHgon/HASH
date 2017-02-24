@@ -115,7 +115,7 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 				if(insert(head, hashSize, input2, key, index, cod, outputFile)==1){
 					loadHash++;
 					if(((float)loadHash/(float)hashSize)>=L_FACTOR)
-					head = rehash(head, &hashSize, cod);
+						head = rehash(head, &hashSize, cod);
 				}
 			}
 			else{
@@ -162,14 +162,14 @@ celHash **rehash (celHash **ptr, int *size, int cod){
 
 			switch(cod){
 				case DUPLO:
-				index = s_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
-				break;
+					index = s_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+					break;
 				case QUADRATICA:
-				index = q_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
-				break;
+					index = q_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+					break;
 				default:
-				index = f_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
-				break;
+					index = f_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+					break;
 			}
 
 			insert(newHash, *size*2, ptr[i]->keyString, key, index, cod, NULL); // Insere na Nova hash
@@ -197,7 +197,7 @@ void destroyHash(celHash **ptr, int size, int cod){
 				}
 			}
 			else // Demais casos, libera somente a celula
-			free(ptr[i]);
+				free(ptr[i]);
 		}
 	}
 	free(ptr); // Libera o vetor de ponteiros
@@ -272,7 +272,7 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 					return 1;
 				}
 				else
-				return 0;
+					return 0;
 			}
 			else{
 				if(strncmp(ptr[aux]->keyString,"\0", 1)==0){ // Caso string tenha sido deletada
@@ -298,23 +298,24 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 
 int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 	int i=0, aux = index;
-	celHash *temp = ptr[aux], *temp2, *temp3;
+	celHash *temp = ptr[aux], *temp2;
 
 	if (ptr[aux] == NULL) {
 		ptr[aux] = (celHash*) malloc (sizeof(celHash));
-		ptr[aux]->prox = NULL;
-
 		if(ptr[aux] == NULL){
 			printf("ERROR: Null pointer!\n");
 			exit(0);
 		}
 
 		strncpy(ptr[aux]->keyString, input, 101);
+		ptr[aux]->prox = NULL;
 
 		if(output != NULL){
 			fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 			return 1;
-		}else return 0;
+		}
+		else 
+			return 0;
 	}
 
 	else{
@@ -322,35 +323,35 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 			if (strcmp(temp->keyString, input) == 0) {
 				if(output != NULL){
 					fprintf(output, "INSERT \"%s\" %d %d %d 0 FAIL\n", input, key, index, aux);
-					return 1;
-				}else return 0;
+				} 
+				return 0;
 			}
 
 			temp2 = temp;
 			temp = temp->prox;
+
 			if (i<1) {
 				i++;
 			}
 
-		}while(temp != NULL);
+		} while(temp != NULL);
 
-		temp3 = (celHash*) malloc (sizeof(celHash));
-
-		if(temp3 == NULL){
+		temp = (celHash*) malloc (sizeof(celHash));
+		if(temp == NULL){
 			printf("ERROR: Null pointer!\n");
 			exit(0);
 		}
 
-		strncpy(temp3->keyString, input, 101);
+		strncpy(temp->keyString, input, 101);
 
-		temp2->prox = temp3;
-		temp3->prox = temp;
+		temp2->prox = temp;
 
 		if(output!=NULL){
 			fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 			return 1;
-		}else return 0;
-
+		}
+		else 
+			return 0;
 	}
 }
 
@@ -431,10 +432,10 @@ void get_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 
 	do{
 		if(ptr[aux] == NULL){
-		fprintf(output, "GET \"%s\" %d %d %d 0 FAIL\n", input, key, index, aux);
-		ptr[aux] = temp;
-		return;
-	}
+			fprintf(output, "GET \"%s\" %d %d %d 0 FAIL\n", input, key, index, aux);
+			ptr[aux] = temp;
+			return;
+		}
 
 		else{
 			if (strcmp(input, ptr[aux]->keyString) == 0) {
@@ -443,11 +444,9 @@ void get_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 				return;
 			}
 			else
-			ptr[aux] = ptr[aux]->prox;
+				ptr[aux] = ptr[aux]->prox;
 		}
-
-
-	}while(ptr[aux] != NULL);
+	} while(ptr[aux] != NULL);
 	fprintf(output, "GET \"%s\" %d %d %d 1 SUCCESS\n", input, key, index, aux);
 	ptr[aux] = temp;
 }

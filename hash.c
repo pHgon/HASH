@@ -253,7 +253,6 @@ int collisionTreatment(int key, int size, int i, int cod){
 // Insere na Hash
 int insert (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
 	int i=0, aux = index;
-	celHash *temp = ptr[aux], *temp2; // Guarda o valor da Head;
 
 	//Tratando o encadeamento separadamente - ajuda na abstração
 	if (cod == ENCADEAMENTO) {
@@ -368,23 +367,25 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 	}
 
 	else{
-		while(ptr[aux] != NULL){
+		while(temp != NULL){
 
-			if (strcmp(input, ptr[aux]->keyString)==0){
+			if (strcmp(input, temp->keyString)==0){
 
-				strncpy(ptr[aux]->keyString, "\0", 1);
+				strncpy(temp->keyString, "\0", 1);
 
 				if(output != NULL){
 					fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 				}
-				ptr[aux] = temp; // Recupera a posicao inicial do vetor
 				return 1;
 			}
+
 			else{
 				i++;
 				aux = collisionTreatment(key, size, i, cod);
+				temp = ptr[aux];
 			}
 		}
+
 		if(output != NULL){
 			fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i); // Caso nao encontre celula para deletar
 		}
@@ -436,30 +437,30 @@ int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 void get (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output){
 	int i=0, aux = index;
 	celHash* temp = ptr[aux]; // Salva a posicao inicial
+
 	if (cod == ENCADEAMENTO) {
 		get_chain(ptr, input, key, index, output);
 		return;
 	}
 	else{
 		do {
-			if(ptr[aux]==NULL){ // Se nenhuma chave foi inserida nesta posicao
+			if(temp == NULL){ // Se nenhuma chave foi inserida nesta posicao
 				if(output != NULL){
 					fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
 				}
-				ptr[aux] = temp; // Recupera a posicao inicial do vetor
 				return;
 			}
 			else{
-				if(strcmp(input, ptr[aux]->keyString)==0){ // Se a chave esta nesta posicao
+				if(strcmp(input, temp->keyString)==0){ // Se a chave esta nesta posicao
 					if(output != NULL){
 						fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 					}
-					ptr[aux] = temp; // Recupera a posicao inicial do vetor
 					return;
 				}
 				else{
 					i++;
 					aux = collisionTreatment(key, size, i, cod);
+					temp = ptr[aux];
 				}
 			}
 		} while(1);

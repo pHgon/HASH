@@ -42,6 +42,7 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 void get (celHash **ptr, int size, char *input, int key, int index, int cod, FILE *output);
 void get_chain(celHash **ptr, char *input, int key, int index, FILE *output);
 int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output);
+int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output);
 
 void main(int argc,char *argv[]){
 	if(argc == 1){

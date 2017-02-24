@@ -101,13 +101,13 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 
 			switch(cod){
 				case DUPLO:
-				index = s_hash(key, hashSize*2, 0);  // Calcula a Funcao Hash Inicial
+				index = s_hash(key, hashSize, 0);  // Calcula a Funcao Hash Inicial
 				break;
 				case QUADRATICA:
-				index = q_hash(key, hashSize*2, 0);  // Calcula a Funcao Hash Inicial
+				index = q_hash(key, hashSize, 0);  // Calcula a Funcao Hash Inicial
 				break;
 				default:
-				index = f_hash(key, hashSize*2, 0);  // Calcula a Funcao Hash Inicial
+				index = f_hash(key, hashSize, 0);  // Calcula a Funcao Hash Inicial
 				break;
 			}
 

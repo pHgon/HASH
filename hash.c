@@ -34,6 +34,7 @@ int h1(int key, int size);
 int h2(int key, int size);
 int f_hash(int key, int size, int i);
 int s_hash(int key, int size, int i);
+int q_hash(int key, int size, int i);
 int quad_hash(int key, int size, int i);
 int readInput (FILE *inputFile, char *input1, char *input2);
 int collisionTreatment(int key, int size, int i, int cod);

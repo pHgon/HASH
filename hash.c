@@ -117,7 +117,7 @@ void Hash (FILE *inputFile, FILE *outputFile, int cod){
 				if(insert(head, hashSize, input2, key, index, cod, outputFile)==1){
 					loadHash++;
 					if(((float)loadHash/(float)hashSize)>=L_FACTOR)
-						head = rehash(head, &hashSize, cod);
+					head = rehash(head, &hashSize, cod);
 				}
 			}
 			else{
@@ -157,27 +157,28 @@ celHash **rehash (celHash **ptr, int *size, int cod){
 	celHash **newHash = startHash(*size*2);
 	int i, key, index;
 	celHash *temp;
+
 	for (i=0; i<*size; i++){
 		temp = ptr[i]; // Salva a posicao inicial da lista
-		while(ptr[i]!=NULL && strncmp(ptr[i]->keyString,"\0", 1)!=1){
-			key = rot_hash(ptr[i]->keyString, strlen(ptr[i]->keyString));  // Calcula a chave
+
+		while(temp != NULL && strncmp(temp->keyString,"\0", 1) != 0){
+			key = rot_hash(temp->keyString, strlen(temp->keyString));  // Calcula a chave
 
 			switch(cod){
 				case DUPLO:
-					index = s_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
-					break;
+				index = s_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+				break;
 				case QUADRATICA:
-					index = q_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
-					break;
+				index = q_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+				break;
 				default:
-					index = f_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
-					break;
+				index = f_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+				break;
 			}
 
-			insert(newHash, *size*2, ptr[i]->keyString, key, index, cod, NULL); // Insere na Nova hash
-			ptr[i] = ptr[i]->prox; // Caso a seja o modo encadeado, a lista percorre ate o final
+			insert(newHash, *size*2, temp->keyString, key, index, cod, NULL); // Insere na Nova hash
+			temp = temp->prox; // Caso a seja o modo encadeado, a lista percorre ate o final
 		}
-		ptr[i] = temp; // Recupera a posicao inicial do vetor
 	}
 	destroyHash(ptr, *size, cod);  // Libera Hash antiga
 	*size = *size*2; //Atualiza o tamanho total da hash
@@ -199,7 +200,7 @@ void destroyHash(celHash **ptr, int size, int cod){
 				}
 			}
 			else // Demais casos, libera somente a celula
-				free(ptr[i]);
+			free(ptr[i]);
 		}
 	}
 	free(ptr); // Libera o vetor de ponteiros
@@ -274,7 +275,7 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 					return 1;
 				}
 				else
-					return 0;
+				return 0;
 			}
 			else{
 				if(strncmp(ptr[aux]->keyString,"\0", 1)==0){ // Caso string tenha sido deletada
@@ -317,7 +318,7 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 			return 1;
 		}
 		else
-			return 0;
+		return 0;
 	}
 
 	else{
@@ -353,7 +354,7 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 			return 1;
 		}
 		else
-			return 0;
+		return 0;
 	}
 }
 
@@ -373,7 +374,9 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 
 				strncpy(ptr[aux]->keyString, "\0", 1);
 
-				fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+				if(output != NULL){
+					fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+				}
 				ptr[aux] = temp; // Recupera a posicao inicial do vetor
 				return 1;
 			}
@@ -382,7 +385,9 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 				aux = collisionTreatment(key, size, i, cod);
 			}
 		}
-		fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i); // Caso nao encontre celula para deletar
+		if(output != NULL){
+			fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i); // Caso nao encontre celula para deletar
+		}
 		return -1;
 	}
 }
@@ -392,7 +397,9 @@ int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 	celHash *temp = ptr[aux], *temp2; // Guarda a posicao incial
 
 	if (ptr[aux] == NULL) {
-		fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+		if(output != NULL){
+			fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+		}
 		return 0;
 	}
 
@@ -402,7 +409,10 @@ int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 				temp2 = temp;
 				temp = temp->prox;
 				free(temp2);
-				fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+
+				if(output != NULL){
+					fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+				}
 				return 1;
 			}
 
@@ -410,11 +420,13 @@ int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 			temp = temp->prox;
 
 			if(i < 1)
-				i++;
+			i++;
 
 		}while(temp != NULL);
 
-		fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+		if(output != NULL){
+			fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+		}
 		return 0;
 	}
 
@@ -431,15 +443,17 @@ void get (celHash **ptr, int size, char *input, int key, int index, int cod, FIL
 	else{
 		do {
 			if(ptr[aux]==NULL){ // Se nenhuma chave foi inserida nesta posicao
-				fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
-
+				if(output != NULL){
+					fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+				}
 				ptr[aux] = temp; // Recupera a posicao inicial do vetor
 				return;
 			}
 			else{
 				if(strcmp(input, ptr[aux]->keyString)==0){ // Se a chave esta nesta posicao
-					fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
-
+					if(output != NULL){
+						fprintf(output, "GET \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
+					}
 					ptr[aux] = temp; // Recupera a posicao inicial do vetor
 					return;
 				}
@@ -457,22 +471,25 @@ void get_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 	celHash* temp = ptr[aux];
 
 	do{
-		if(ptr[aux] == NULL){
-			fprintf(output, "GET \"%s\" %d %d %d 0 FAIL\n", input, key, index, aux);
-			ptr[aux] = temp;
+		if(temp == NULL){
+			if(output != NULL){
+				fprintf(output, "GET \"%s\" %d %d %d 0 FAIL\n", input, key, index, aux);
+			}
 			return;
 		}
 
 		else{
-			if (strcmp(input, ptr[aux]->keyString) == 0) {
-				fprintf(output, "GET \"%s\" %d %d %d 1 SUCCESS\n", input, key, index, aux);
-				ptr[aux] = temp;
+			if (strcmp(input, temp->keyString) == 0) {
+				if(output != NULL){
+					fprintf(output, "GET \"%s\" %d %d %d 1 SUCCESS\n", input, key, index, aux);
+				}
 				return;
 			}
-			else
-				ptr[aux] = ptr[aux]->prox;
+
+			temp = temp->prox;
 		}
-	} while(ptr[aux] != NULL);
-	fprintf(output, "GET \"%s\" %d %d %d 1 SUCCESS\n", input, key, index, aux);
-	ptr[aux] = temp;
+	} while(temp != NULL);
+	if(output != NULL){
+		fprintf(output, "GET \"%s\" %d %d %d 1 SUCCESS\n", input, key, index, aux);
+	}
 }

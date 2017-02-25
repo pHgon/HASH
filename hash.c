@@ -180,25 +180,37 @@ celHash **rehash (celHash **ptr, int *size, int cod){
 	for (i=0; i<*size; i++){
 		temp = ptr[i]; // Salva a posicao inicial da lista
 
-		while(temp != NULL && strncmp(temp->keyString,"\0", 1) != 0){
-			key = rot_hash(temp->keyString, strlen(temp->keyString));  // Calcula a chave
-
-			switch(cod){
-				case DUPLO:
-				index = s_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
-				break;
-				case QUADRATICA:
-				index = q_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
-				break;
-				default:
+		if (cod == ENCADEAMENTO) {
+			while(temp != NULL){
+				key = rot_hash(temp->keyString, strlen(temp->keyString));  // Calcula a chave
 				index = f_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
-				break;
+				insert(newHash, *size*2, temp->keyString, key, index, cod, NULL); // Insere na Nova hash
+				temp = temp->prox; // Caso a seja o modo encadeado, a lista percorre ate o final
 			}
+		}
+		
+		else{
+			while(temp != NULL && strncmp(temp->keyString, "\0", 1) != 0){
 
-			insert(newHash, *size*2, temp->keyString, key, index, cod, NULL); // Insere na Nova hash
-			temp = temp->prox; // Caso a seja o modo encadeado, a lista percorre ate o final
+				key = rot_hash(temp->keyString, strlen(temp->keyString));  // Calcula a chave
+
+				switch(cod){
+					case DUPLO:
+					index = s_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+					break;
+					case QUADRATICA:
+					index = q_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+					break;
+					default:
+					index = f_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
+					break;
+				}
+
+				insert(newHash, *size*2, temp->keyString, key, index, cod, NULL); // Insere na Nova hash
+			}
 		}
 	}
+
 	destroyHash(ptr, *size, cod);  // Libera Hash antiga
 	*size = *size*2; //Atualiza o tamanho total da hash
 	return newHash;
@@ -440,7 +452,7 @@ int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 				i++;
 
 		} while(temp != NULL);
-		
+
 		fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
 		return 0;
 	}

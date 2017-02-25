@@ -188,7 +188,7 @@ celHash **rehash (celHash **ptr, int *size, int cod){
 				temp = temp->prox; // Caso a seja o modo encadeado, a lista percorre ate o final
 			}
 		}
-		
+
 		else{
 			while(temp != NULL && strncmp(temp->keyString, "\0", 1) != 0){
 
@@ -333,7 +333,7 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 
 int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 	int i=0, aux = index;
-	celHash *temp = ptr[aux], *temp2;
+	celHash *temp = ptr[aux], *temp2, *temp3;
 
 	if (ptr[aux] == NULL) {
 		ptr[aux] = (celHash*) malloc (sizeof(celHash));
@@ -370,15 +370,16 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 
 		} while(temp != NULL);
 
-		temp = (celHash*) malloc (sizeof(celHash));
-		if(temp == NULL){
+		temp3 = (celHash*) malloc (sizeof(celHash));
+		if(temp3 == NULL){
 			printf("ERROR: Null pointer!\n");
 			exit(0);
 		}
 
-		strncpy(temp->keyString, input, 101);
+		strncpy(temp3->keyString, input, 101);
 
-		temp2->prox = temp;
+		temp2->prox = temp3;
+		temp3->prox = temp;
 
 		if(output!=NULL){
 			fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);

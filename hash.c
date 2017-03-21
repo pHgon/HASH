@@ -298,7 +298,6 @@ int insert (celHash **ptr, int size, char *input, int key, int index, int cod, F
 		do{
 			if (ptr[aux] == NULL){
 				ptr[aux] = (celHash *) malloc (sizeof(celHash)); // Aloca a celula para inserir a chave
-				ptr[aux]->flagDel = 0;
 				if(ptr[aux]==NULL){
 					printf("ERROR: Null pointer!\n");
 					exit(0);
@@ -417,6 +416,7 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 			}
 		}
 		fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i); // Caso nao encontre celula para deletar
+		totalCollisions+=i;
 		return -1;
 	}
 }
@@ -474,6 +474,7 @@ void get (celHash **ptr, int size, char *input, int key, int index, int cod, FIL
 		do {
 			if(ptr[aux] == NULL){ // Se nenhuma chave foi inserida nesta posicao
 				fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+				totalCollisions+=i;
 				return;
 			}
 			else{

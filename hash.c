@@ -24,7 +24,6 @@ int totalCollisions=0;
 struct Node{
 	char keyString[101];  // Guarda a String lida
 	struct Node *prox;    // Usado no tratamento por encadeamento
-	int flagDel;          // Flag Caso o Nodo ja tenha sido visitado
 }; typedef struct Node celHash;
 
 
@@ -407,7 +406,6 @@ int delete (celHash **ptr, int size, char *input, int key, int index, int cod, F
 		while(ptr[aux] != NULL){
 			if (strcmp(input, ptr[aux]->keyString)==0){
 				strncpy(ptr[aux]->keyString, "\0", 1);
-				ptr[aux]->flagDel = 1;
 				fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 				totalCollisions+=i;
 				return 1;

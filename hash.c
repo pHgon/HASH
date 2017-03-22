@@ -177,7 +177,7 @@ celHash **startHash (int size){
 // Re-hash dobrando o tamanho do vetor, retorna ponteiro para a nova lista
 celHash **rehash (celHash **ptr, int *size, int cod){
 	celHash **newHash = startHash(*size*2);
-	int i, key, index;
+	int i, key, index, aux;
 	celHash *temp;
 
 	for (i=0; i<*size; i++){
@@ -187,7 +187,7 @@ celHash **rehash (celHash **ptr, int *size, int cod){
 			while(temp != NULL){
 				key = rot_hash(temp->keyString, strlen(temp->keyString));  // Calcula a chave
 				index = f_hash(key, *size*2, 0);  // Calcula a Funcao Hash Inicial
-				insert(newHash, *size*2, temp->keyString, key, index, cod, NULL); // Insere na Nova hash
+				aux = insert(newHash, *size*2, temp->keyString, key, index, cod, NULL); // Insere na Nova hash
 				temp = temp->prox; // Caso a seja o modo encadeado, a lista percorre ate o final
 			}
 		}
@@ -208,7 +208,7 @@ celHash **rehash (celHash **ptr, int *size, int cod){
 							break;
 					}
 
-					insert(newHash, *size*2, temp->keyString, key, index, cod, NULL); // Insere na Nova hash
+					aux = insert(newHash, *size*2, temp->keyString, key, index, cod, NULL); // Insere na Nova hash
 				}
 			}
 		}
@@ -426,15 +426,12 @@ int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 	int i=0, aux = index;
 	celHash *temp = ptr[aux], *temp2=NULL; // Guarda a posicao incial
 
-	if (ptr[aux] == NULL) {
-		if(output != NULL){
+	do{
+		if (temp == NULL) {
 			fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+			return 0;
 		}
-		return 0;
-	}
-
-	else{
-		do{
+		else{
 			if (strcmp(temp->keyString, input) == 0) {
 				if(i==0){
 					ptr[aux]=NULL;
@@ -454,13 +451,13 @@ int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 				temp = temp->prox;
 				i=1;
 			}
-		} while(temp != NULL);
+		}
 
-		fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
-		totalCollisions+=i;
-		return 0;
-	}
+	} while(temp != NULL);
 
+	fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+	totalCollisions+=i;
+	return 0;
 }
 
 // Busca na Hash por uma chave

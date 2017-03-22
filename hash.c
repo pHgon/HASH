@@ -274,13 +274,14 @@ int readInput (FILE *inputFile, char *input1, char *input2){
 
 // Calcula e retorna a nova posicao apos um conflito
 int collisionTreatment(int key, int size, int i, int cod){
+	int aux;
 	switch(cod){
 		case LINEAR:
-		return f_hash(key, size, i);
+			return f_hash(key, size, i);
 		case DUPLO:
-		return s_hash(key, size, i);
+			return s_hash(key, size, i);
 		case QUADRATICA:
-		return q_hash(key, size, i);
+			return q_hash(key, size, i);
 	}
 }
 
@@ -361,14 +362,14 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 				if(output != NULL){
 					fprintf(output, "INSERT \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
 				}
+				totalCollisions+=i;
 				return 0;
 			}
-
-			if (i<1)
-				i++;
-
-			temp2 = temp;
-			temp = temp->prox;
+			else{
+				i=1;
+				temp2 = temp;
+				temp = temp->prox;
+			}
 
 		} while(temp != NULL);
 
@@ -381,7 +382,7 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 		strncpy(temp3->keyString, input, 101);
 
 		temp2->prox = temp3;
-		temp3->prox = temp;
+		temp3->prox = NULL;
 
 		if(output!=NULL){
 			fprintf(output, "INSERT \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
@@ -389,7 +390,7 @@ int insert_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 			return 1;
 		}
 		else
-		return 0;
+			return 0;
 	}
 }
 
@@ -441,23 +442,22 @@ int delete_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 				}
 				else{
 					temp2->prox=temp->prox;
-					free(temp2);
+					free(temp);
 				}
 
 				fprintf(output, "DELETE \"%s\" %d %d %d %d SUCCESS\n", input, key, index, aux, i);
 				totalCollisions+=i;
 				return 1;
 			}
-
-			temp2 = temp;
-			temp = temp->prox;
-
-			if(i < 1)
-				i++;
-
+			else{
+				temp2 = temp;
+				temp = temp->prox;
+				i=1;
+			}
 		} while(temp != NULL);
 
 		fprintf(output, "DELETE \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+		totalCollisions+=i;
 		return 0;
 	}
 
@@ -504,9 +504,9 @@ void get_chain(celHash **ptr, char *input, int key, int index, FILE *output){
 		}
 		else{
 			temp = temp->prox;
-			if(i < 1)
-				i++;
+			i=1;
 		}
 	}
 	fprintf(output, "GET \"%s\" %d %d %d %d FAIL\n", input, key, index, aux, i);
+	totalCollisions+=i;
 }
